@@ -1,0 +1,57 @@
+package util
+
+import (
+	"errors"
+	"regexp"
+	"strconv"
+	"unicode"
+)
+
+func ValidateEmail(email string) error {
+	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
+
+	if !re.MatchString(email){
+         return errors.New("invalid email address")
+	}
+	return nil
+}
+
+func ValidateMobileNumber(number string) error {
+	if len(number) != 10 {
+		return errors.New("mobile number must be exactly 10 digits")
+	}
+
+	if _, err := strconv.Atoi(number); err != nil {
+		return errors.New("mobile number must contain only digits")
+	}
+
+	return nil
+}
+
+func ValidatePassword(password string)error{
+	if len(password) < 12{
+		return errors.New("password must be at least 12 charactercontain at least one uppercase letter, one lowercase letter, one number, and one special symbol")
+
+	}
+
+	var hasUpper, hasLowe, hasDigit , hasSpecial bool
+
+	for _,char:=range password{
+		switch{
+		case unicode.IsUpper(char):
+			hasUpper=true
+		case unicode.IsLower(char):
+			hasLowe=true
+		case unicode.IsDigit(char):
+			hasDigit=true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial=true
+
+		}
+	}
+	if !(hasDigit && hasLowe && hasUpper && hasSpecial){
+		return errors.New("password must be at least 12 charactercontain at least one uppercase letter, one lowercase letter, one number, and one special symbol")
+	}
+	return nil
+}
+

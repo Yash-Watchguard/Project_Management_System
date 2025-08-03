@@ -1,0 +1,26 @@
+[
+  {
+    "id": "420af6c4-6482-43de-b47b-3f1557e078be",
+    "Role": "Admin",
+    "name": "yash",
+    "password": "$2a$10$ARQHNrMEEnGOkE/wcChyEec/UU5Jfi/.YpO.VC1iaKsYl2rxTG6Ze",
+    "phonenumber": "1234567890",
+    "email": "yash467@gmail.com"
+  },
+  {
+    "id": "7aabfd86-2bc1-4802-86e5-166ea9608e0d",
+    "Role": "Manager",
+    "name": "yash",
+    "password": "$2a$10$jnZ9JodSXYGQthW5fRuiOuTrhBm2KoF39vCQuJejnWtsah6YogWVu",
+    "phonenumber": "1234567890",
+    "email": "ytug45@gmail.com"
+  },
+  {
+    "id": "46e4ad35-7b16-4c0b-a383-f37eef6035d8",
+    "Role": "Admin",
+    "name": "yash",
+    "password": "$2a$10$3jZBImeJTWXznF5hYg/0Z.wGyDoeMFaZ1Pn8w/jLuMOViZiqQrK.6",
+    "phonenumber": "1234567890",
+    "email": "yashgoyal322023@gmail.com"
+  }
+]
