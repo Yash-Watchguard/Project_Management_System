@@ -2,7 +2,7 @@ package repository
 
 import (
 	"encoding/json"
-	"errors"
+	
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,10 +10,11 @@ import (
     "github.com/fatih/color"
 	"github.com/Yash-Watchguard/Tasknest/model"
 	"golang.org/x/crypto/bcrypt"
+	"errors"
 )
 
 var (
-	userFile = "C:/Users/ygoyal/Desktop/PMS/data/user.json"
+	userFile = "C:/Users/ygoyal/Desktop/PMS_Project/Pms/data/user.json"
 	mu       sync.Mutex
 )
 
@@ -80,7 +81,7 @@ func (repo *UserRepo) IsUserPresent(name, email, password string) (*model.User, 
 
     return nil, errors.New("invalid details")
 }
-func(repo *UserRepo)ViewProfile(user model.User){
+func(repo *UserRepo)ViewProfile(user *model.User){
 color.Cyan("----------- %s Profile -----------",user.Role)
 color.Yellow("ID     : %d", user.Id)
 color.Yellow("Name   : %s", user.Name)
@@ -141,22 +142,28 @@ func(ur *UserRepo)DeleteUserById(userId string)error{
 
 	return nil
 }
-func GetAllManager(){
+func (ur *UserRepo) GetAllManager()error {
 	Data,err:=ioutil.ReadFile(userFile)
 
 	if err!=nil{
-		return
+		return err
 	}
 
 	var users []model.User
 	_=json.Unmarshal(Data,&users)
     counter:=1
+	 flag:=false
 	for _,user:=range users{
 		if user.Role=="Manager"{
+			flag=true
 			fmt.Printf("%d. Name :%s , UserId : %s \n",counter,user.Name,user.Id)
 			counter++
 		}
 	}
+	if !flag{
+		return errors.New("There is No Manager For assign the Task")
+	}
+	return nil
 }
 
 

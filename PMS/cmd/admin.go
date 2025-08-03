@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-
+     "errors"
 	"github.com/Yash-Watchguard/Tasknest/model"
 	"github.com/Yash-Watchguard/Tasknest/repository"
 	"github.com/Yash-Watchguard/Tasknest/service"
@@ -47,7 +47,7 @@ func AdminDashboard(admin *model.User) {
 		case 4:
 			err := addNewProject(adminService,*admin)
 			if err != nil {
-				color.Red("Error: %v", err)
+				color.Red("%v", err)
 			}
 
 		case 5:
@@ -55,17 +55,20 @@ func AdminDashboard(admin *model.User) {
 			if err != nil {
 				color.Red("Error: %v", err)
 			}
+			 fmt.Println("Press ENTER to return to dashboard...")
+	         fmt.Scanln()
 
 		case 6:
 			err := deleteProject(adminService,admin)
 			if err != nil {
 				color.Red("Error: %v", err)
 			}
+			 fmt.Println("Press ENTER to return to dashboard...")
+	         fmt.Scanln()
+
 
 		case 7:
 			color.Green("Logging out...")
-			return
-
 		default:
 			color.Red("Invalid choice. Please try again.")
 		}
@@ -104,14 +107,18 @@ func addNewProject(ad *service.AdminService,admin model.User)error{
 	if err!=nil{
 		return err
 	}
-    deadline,err:=GetInput("Enter deadline (YYYY-MM-DD):")
+    deadline,_:=GetInput("Enter deadline (YYYY-MM-DD):")
 	actualdeadline,err:=TimeParser(deadline)
 	if err!=nil{
 		return err
 	}
 
 	color.Blue("select Manager from Given list 👇")
-	ad.GetAllManager()
+	err=ad.GetAllManager()
+	if err!=nil{
+		color.Red("%s",err)
+		return errors.New("Project Add Faild")
+	}
 	var managerId string
 	color.Blue("Enter Manager Id:")
 	fmt.Scanln(&managerId)
@@ -136,8 +143,37 @@ func addNewProject(ad *service.AdminService,admin model.User)error{
 }
 
 func viewAllProjects(ad *service.AdminService,admin *model.User)error{
-
-	
-	return nil
+	 var projects []model.Project
+     projects,err:=ad.ViewAllProjects()
+     
+	 if err!=nil{
+		return err
+	 }
+	 counter:=1
+	 for _,project:=range projects{
+		if project.CreatedBy==admin.Id{
+        color.Cyan("----------------%d----------------",counter)
+		color.Cyan("Project Name: %v\n",project.ProjectName)
+		color.Cyan("Project Id: %v\n",project.ProjectId)
+		color.Cyan("Project Description: %v\n",project.ProjectDescription)
+		color.Cyan("Project Deadline: %v\n",project.Deadline)
+		color.Cyan("Assigned To: %v\n",project.AssignedManager)
+		counter++
+		}
+	 }
+	 return nil
 }
+func deleteProject(ad *service.AdminService,admin *model.User)error{
+	color.Green("---------Project List👇----------")
+	_=viewAllProjects(ad,admin)
+	var proId string
+	color.Blue("Enter the Project id which you want to delete")
+    fmt.Scanln(&proId)
+	err:= ad.DeleteProject(proId)
+	color.Green("Project Deleted Succesfully ✅")
+	return err
+
+}
+
+
 

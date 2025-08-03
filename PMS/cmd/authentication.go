@@ -27,7 +27,7 @@ func SetInputReader(r io.Reader) {
 	inputReader = bufio.NewReader(r)
 }
 
-func SignupCli() error {
+func SignupC() error {
 	name, err := GetInput("Enter Your Name: ")
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func GetValidEmail() (string, error) {
 		return "", err
 	}
 	if err := ValidEmail(email); err != nil {
-		color.Red("Invalid email: %v", err)
+		color.Red("Invalid email")
 		return "", err
 	}
 	return email, nil
@@ -127,7 +127,7 @@ func GetValidPhoneNumber() (string, error) {
 	}
 	number = strings.TrimSpace(number)
 	if err := ValidPhoneNumber(number); err != nil {
-		color.Red("Invalid phone number: %v", err)
+		color.Red("Invalid phone number")
 		return "", err
 	}
 	return number, nil
@@ -139,7 +139,7 @@ func GetValidPassword() (string, error) {
 		return "", err
 	}
 	if err := util.ValidatePassword(password); err != nil {
-		color.Red("Invalid password: %v", err)
+		color.Red("Invalid password")
 		return "", err
 	}
 	return password, nil
@@ -148,14 +148,17 @@ func GetValidPassword() (string, error) {
 func LoginCli()error {
      name,err:=GetInput("Enter name:")
 	 if err!=nil{
+		color.Red("Login Faild:")
 		return err
 	 }
      mailId,err:=GetValidEmail()
 	 if err!=nil{
+		color.Red("Login Faild:")
 		return err
 	 }
 	 password,err:=GetValidPassword()
 	 if err!=nil{
+		color.Red("Login Faild:")
 		return err
 	 }
 
@@ -164,7 +167,7 @@ func LoginCli()error {
 
 	 user,err:=authService.Login(name,mailId,password)
      if err!=nil{
-		color.Red("Login Faild:",err)
+		color.Red("----------Invalid details,Login Faild----------------")
 		return err
 	 }
 	 
@@ -175,7 +178,7 @@ func LoginCli()error {
 
 func DashBoard(user *model.User){
 if user.Role=="Admin"{
-   AdminDashboard(user)
+     AdminDashboard(user)
 }else if user.Role=="Manager"{
 //    ManagerDashboard(user)
 }else{
@@ -183,3 +186,4 @@ if user.Role=="Admin"{
 }
 
 }
+

@@ -38,13 +38,18 @@ func (a *AdminService) ViewAllUsers() {
 func(a *AdminService)DeleteUser(userId string)error{
 	return a.userRepo.DeleteUserById(userId)
 }
-func(a *AdminService)GetAllManager(){
-	a.userRepo.GetAllManager()
+func(a *AdminService)GetAllManager()error{
+	return a.userRepo.GetAllManager()
 }
 
 func(as *AdminService) AddProject(project model.Project) error {
 	return as.projectRepo.AddProject(project)
 }
-func(as * AdminService)ViewProject()error{
-	return as.projectRepo.ViewProject()
+func (as *AdminService) ViewAllProjects() ([]model.Project, error) {
+	return as.projectRepo.ViewAllProjects()
 }
+func (as *AdminService) DeleteProject(projectID string) error {
+	return as.projectRepo.DeleteProject(projectID)
+}
+
+

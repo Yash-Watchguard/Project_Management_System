@@ -8,5 +8,5 @@ type UserRepository interface {
 	ViewProfile(user *model.User)
 	GetAllUsers()[]model.User
 	DeleteUserById(userId string)error
-	GetAllManager()
+	GetAllManager()error
 }

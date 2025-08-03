@@ -1,9 +1,10 @@
 package main
 
 import (
-	
 	"fmt"
 	"log"
+
+	
 	"github.com/fatih/color"
 )
 
@@ -26,8 +27,8 @@ for{
 	
 	switch Choice{
 	case 1:
-		_= SignupCli()
-		
+		_=SignupC()
+
 	case 2:
 		_=LoginCli()
 		
@@ -35,7 +36,7 @@ for{
 		fmt.Println("Bye Bye 👋")
 		return nil
 	default:
-			color.Red(" Invalid choice. Try again.")
+		color.Red(" Invalid choice. Try again.")
 	}
 	}
 

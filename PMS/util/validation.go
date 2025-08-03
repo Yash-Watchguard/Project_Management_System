@@ -3,7 +3,6 @@ package util
 import (
 	"errors"
 	"regexp"
-	"strconv"
 	"unicode"
 )
 
@@ -16,18 +15,14 @@ func ValidateEmail(email string) error {
 	return nil
 }
 
-func ValidateMobileNumber(number string) error {
-	if len(number) != 10 {
-		return errors.New("mobile number must be exactly 10 digits")
+func ValidateMobileNumber(phone string) error {
+	// Regular expression for Indian mobile number
+	re := regexp.MustCompile(`^[6-9]\d{9}$`)
+	if !re.MatchString(phone) {
+		return errors.New("invalid phone number: must be 10 digits and start with 6-9")
 	}
-
-	if _, err := strconv.Atoi(number); err != nil {
-		return errors.New("mobile number must contain only digits")
-	}
-
 	return nil
 }
-
 func ValidatePassword(password string)error{
 	if len(password) < 12{
 		return errors.New("password must be at least 12 charactercontain at least one uppercase letter, one lowercase letter, one number, and one special symbol")
