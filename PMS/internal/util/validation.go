@@ -16,7 +16,7 @@ func ValidateEmail(email string) error {
 }
 
 func ValidateMobileNumber(phone string) error {
-	// Regular expression for Indian mobile number
+	//  Indian mobile number
 	re := regexp.MustCompile(`^[6-9]\d{9}$`)
 	if !re.MatchString(phone) {
 		return errors.New("invalid phone number: must be 10 digits and start with 6-9")

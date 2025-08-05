@@ -2,42 +2,54 @@ package main
 
 import (
 	"fmt"
+	
 	"log"
 
-	
+	"github.com/Yash-Watchguard/Tasknest/handler"
+	"github.com/Yash-Watchguard/Tasknest/internal/constants"
 	"github.com/fatih/color"
 )
 
-func main(){
-    err:= RunApp()
-	if err!=nil{
+func main() {
+	err := RunApp()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
-func RunApp()error{
-for{
-	color.Red("----------------------------------Welcome in Tasknest🫶----------------------")
-	color.Blue("For Signup press 1\n")
+var(
 	
-    color.Blue("For Login  press 2\n")
-    color.Blue("For Exit Press 3\n")
+)
 
-    var Choice int
-    fmt.Scanln(&Choice)
-	
-	switch Choice{
-	case 1:
-		_=SignupC()
+func RunApp() error {
+	for {
+		color.Red(constants.WelcomeMSG)
+		color.Blue(constants.SignupChoice)
 
-	case 2:
-		_=LoginCli()
-		
-	case 3:
-		fmt.Println("Bye Bye 👋")
-		return nil
-	default:
-		color.Red(" Invalid choice. Try again.")
-	}
+		color.Blue(constants.LoginChoice)
+		color.Blue(constants.ExitChoice)
+
+		var Choice int
+		fmt.Scanln(&Choice)
+
+		switch Choice {
+		case 1:
+			err := handler.Signup()
+			if err!=nil{
+				fmt.Println(err)
+			}
+
+		case 2:
+			 err:= handler.Login()
+			if err!=nil{
+				fmt.Println(err)
+			}
+
+		case 3:
+			fmt.Println(constants.GoodByeMsg)
+			return nil
+		default:
+			color.Red(constants.InvalidChoice)
+		}
 	}
 
 }

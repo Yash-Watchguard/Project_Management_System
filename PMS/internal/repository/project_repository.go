@@ -3,12 +3,11 @@ package repository
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"errors"
 
-	"github.com/Yash-Watchguard/Tasknest/interfaces"
-	"github.com/Yash-Watchguard/Tasknest/model"
+	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
 )
 
 type ProjectRepo struct {
@@ -16,19 +15,19 @@ type ProjectRepo struct {
 }
 
 func NewProjectRepo() interfaces.ProjectRepository {
-	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/Pms/data/project.json"}
+	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/project.json"}
 }
 
-func (pr *ProjectRepo) AddProject(project model.Project) error {
-	var projects []model.Project
+func (pr *ProjectRepo) AddProject(newProject project.Project) error {
+	var projects []project.Project
 
 	// Read existing data
-	data, err := ioutil.ReadFile(pr.filePath)
+	data, err := os.ReadFile(pr.filePath)
 	if err == nil {
 		json.Unmarshal(data, &projects)
 	}
 
-	projects = append(projects, project)
+	projects = append(projects, newProject)
 
 	// Save to file
 	file, err := os.Create(pr.filePath)
@@ -45,10 +44,10 @@ func (pr *ProjectRepo) AddProject(project model.Project) error {
 	_, err = file.Write(newData)
 	return err
 }
-func (pr *ProjectRepo) ViewAllProjects() ([]model.Project, error) {
-	var projects []model.Project
+func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
+	var projects []project.Project
 
-	data, err := ioutil.ReadFile(pr.filePath)
+	data, err := os.ReadFile(pr.filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -61,14 +60,14 @@ func (pr *ProjectRepo) ViewAllProjects() ([]model.Project, error) {
 	return projects, nil
 }
 func (pr *ProjectRepo) DeleteProject(projectID string) error {
-	data, err := ioutil.ReadFile(pr.filePath)
+	data, err := os.ReadFile(pr.filePath)
 	if err != nil {
 		return err
 	}
 
-	var projects []model.Project
+	var projects []project.Project
 
-	var newProjects []model.Project
+	var newProjects []project.Project
 	found := false
     _=json.Unmarshal(data,&projects)
 	for _, project := range projects {
@@ -79,14 +78,14 @@ func (pr *ProjectRepo) DeleteProject(projectID string) error {
 		newProjects = append(newProjects, project)
 	}
     if !found {
-		return errors.New("Project not found")
+		return errors.New("project not found")
 	}
 	updatedData, err := json.MarshalIndent(newProjects, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(pr.filePath,updatedData,0644)
+	return os.WriteFile(pr.filePath,updatedData,0644)
 }
 
 
