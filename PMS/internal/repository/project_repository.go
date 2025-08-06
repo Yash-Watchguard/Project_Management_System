@@ -3,10 +3,9 @@ package repository
 
 import (
 	"encoding/json"
-	"os"
 	"errors"
+	"os"
 
-	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
 )
 
@@ -14,7 +13,7 @@ type ProjectRepo struct {
 	filePath string
 }
 
-func NewProjectRepo() interfaces.ProjectRepository {
+func NewProjectRepo() *ProjectRepo {
 	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/project.json"}
 }
 
@@ -86,6 +85,28 @@ func (pr *ProjectRepo) DeleteProject(projectID string) error {
 	}
 
 	return os.WriteFile(pr.filePath,updatedData,0644)
+}
+
+func(pr *ProjectRepo)ViewAssignedProject(userId string)([]project.Project,error){
+   var projects []project.Project
+
+	data, err := os.ReadFile(pr.filePath)
+	if err != nil {
+		return nil, err
+	}
+    
+	var assignedProjects []project.Project
+	err = json.Unmarshal(data, &projects)
+	if err != nil {
+		return nil, errors.New("error in getting projects")
+	}
+	for _,pro:=range projects{
+		if pro.AssignedManager==userId{
+			assignedProjects=append(assignedProjects, pro)
+		}
+	}
+	
+	return assignedProjects,nil
 }
 
 

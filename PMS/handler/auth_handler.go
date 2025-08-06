@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -126,7 +125,8 @@ func Signup() error {
 }
 
 func GetInput(prompt string) (string, error) {
-	color.Red(prompt)
+	str:=color.RedString(prompt)
+	fmt.Printf("%v",str)
 	input, err := inputReader.ReadString('\n')
 	if err != nil {
 		return "", err
@@ -193,23 +193,24 @@ func Login() error {
 	authService := service.NewAuthService(repo)
 
 	user, err := authService.Login(name, mailId, password)
+	if err != nil {
+		color.Red("----------Invalid details,Login Faild----------------")
+		return err
+	}
 	ctx=context.Background()
 	ctx=context.WithValue(ctx,ContextKey.UserId,user.Id)
 	ctx=context.WithValue(ctx,ContextKey.UserPassword,user.Password)
 	ctx=context.WithValue(ctx,ContextKey.UserRole,user.Role)
 
-	if err != nil {
-		color.Red("----------Invalid details,Login Faild----------------")
-		return err
-	}
+	
 
 	color.Green("Welcom back %s in Worknest☺️", user.Name)
 	
 	switch user.Role{
 	case 0:
 		AdminDashboard(ctx)
-    default:
-		return errors.New("by by")
+    case 1:
+		ManagerDashboard(ctx,user)
 	}
 	return nil
 }

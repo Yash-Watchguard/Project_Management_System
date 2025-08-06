@@ -11,7 +11,6 @@ import (
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
-	"github.com/fatih/color"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -82,29 +81,24 @@ func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, e
 
 	return nil, errors.New("invalid details")
 }
-func (repo *UserRepo) ViewProfile(userId string) error {
+func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
 	data, err := os.ReadFile(userFile)
 	if err != nil {
-		return errors.New("error in readfile")
+		return nil, errors.New("error in readfile")
 	}
+
 	var users []user.User
 	err = json.Unmarshal(data, &users)
 	if err != nil {
-		return errors.New("error in unmarshal")
+		return nil, errors.New("error in unmarshal")
 	}
-	for _, user := range users {
-		if user.Id == userId {
-			color.Cyan("----------- %s Profile -----------", user.Role)
-			color.Yellow("ID     : %d", user.Id)
-			color.Yellow("Name   : %s", user.Name)
-			color.Yellow("Email  : %s", user.Email)
-			color.Yellow("Role   : %s", user.Role)
-			color.Cyan("-------------------------------------")
-			fmt.Println("Press ENTER to return to dashboard...")
-			fmt.Scanln()
+
+	for _, u := range users {
+		if u.Id == userId {
+			return []user.User{u}, nil
 		}
 	}
-	return nil
+	return nil, errors.New("user not found")
 }
 
 func (ur *UserRepo) GetAllUsers() []user.User {
@@ -178,5 +172,46 @@ func (ur *UserRepo) GetAllManager() error {
 	if !flag {
 		return errors.New("no manager found")
 	}
+	return nil
+}
+
+func (ur *UserRepo) UpdateProfile(userId, name, email, password, number string) error {
+	data, err := os.ReadFile(userFile)
+	if err != nil {
+		return err
+	}
+
+	var users []user.User
+	err = json.Unmarshal(data, &users)
+	if err != nil {
+		return err
+	}
+
+	found := false
+	for i, user := range users {
+		if user.Id == userId {
+			users[i].Name = name
+			users[i].Email = email
+			users[i].Password = password
+			users[i].PhoneNumber = number
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.New("user not found")
+	}
+
+	updatedData, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(userFile, updatedData, 0644)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

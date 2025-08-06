@@ -13,7 +13,7 @@ import (
 func main() {
 	err := RunApp()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(nil)
 	}
 }
 var(
@@ -35,13 +35,13 @@ func RunApp() error {
 		case 1:
 			err := handler.Signup()
 			if err!=nil{
-				fmt.Println(err)
+				return err
 			}
 
 		case 2:
-			 err:= handler.Login()
+			err:= handler.Login()
 			if err!=nil{
-				fmt.Println(err)
+				return err
 			}
 
 		case 3:

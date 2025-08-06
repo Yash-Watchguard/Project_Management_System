@@ -7,9 +7,10 @@ import (
 
 type UserRepository interface {
 	SaveUser(user *user.User)error
-	// IsUserPresent(name,email,password string)(*user.User,error)
-	ViewProfile(userId string)error
-	// GetAllUsers()[]user.User
+	IsUserPresent(name,email,password string)(*user.User,error)
+	ViewProfile(userId string)([]user.User,error)
+	GetAllUsers()[]user.User
 	DeleteUserById(userId string)error
-	// GetAllManager()error
+	UpdateProfile(userId string,name string, email string,password string,number string)error
+	GetAllManager()error
 }

@@ -1,66 +1,10 @@
 [
   {
-    "id": "420af6c4-6482-43de-b47b-3f1557e078be",
+    "id": "1a7c3adf-7e7a-4a4f-ad7d-d8ffe2f57dc4",
     "role": 0,
     "name": "yash",
-    "password": "$2a$10$ARQHNrMEEnGOkE/wcChyEec/UU5Jfi/.YpO.VC1iaKsYl2rxTG6Ze",
-    "phonenumber": "1234567890",
-    "email": "yash467@gmail.com"
-  },
-  {
-    "id": "46e4ad35-7b16-4c0b-a383-f37eef6035d8",
-    "role": 0,
-    "name": "yash",
-    "password": "$2a$10$3jZBImeJTWXznF5hYg/0Z.wGyDoeMFaZ1Pn8w/jLuMOViZiqQrK.6",
-    "phonenumber": "1234567890",
-    "email": "yashgoyal322023@gmail.com"
-  },
-  {
-    "id": "295adb00-079c-4b99-83e7-9fccd3a836c4",
-    "role": 0,
-    "name": "yash",
-    "password": "$2a$10$nFJRXEeBe1.OcrRFX6q7b.Eu8PjTpIEqgBxwXs6WCSLLkadgMtdUO",
-    "phonenumber": "8619864794",
-    "email": "yashgoyal123@gmail.com"
-  },
-  {
-    "id": "6dff055c-d0e5-477f-8f5e-ca8552801345",
-    "role": 0,
-    "name": "uhjsdjk",
-    "password": "$2a$10$43i3EMSowZLDVRe.E7CfQOvltS3B.9OeMD5MFHNZWLXlQy7jAQPbu",
+    "password": "$2a$10$RWpQ5bGnkjfJ1r0JXu/oTugVbi.LMYRm1xqpxFCJCuGZsZ7.52POe",
     "phonenumber": "7737063944",
-    "email": "hndns35@gmail.com"
-  },
-  {
-    "id": "6391c9b0-847f-4646-85e0-c6e29aed0a1c",
-    "role": 0,
-    "name": "ysh",
-    "password": "$2a$10$P3RZCIrKuUd3FwBGDZeEBeNynJai2l3ek5ANc3Zc494T4//0OAMB.",
-    "phonenumber": "8619864794",
     "email": "yg123@gmail.com"
-  },
-  {
-    "id": "1b6ea619-04ac-4cf2-97fe-374b98554cec",
-    "role": 0,
-    "name": "yshs",
-    "password": "$2a$10$POTHAQkSyPGHhqXWF1.rWOOdIfTMJTvs73rofh1NZdkkwZPcWBdW2",
-    "phonenumber": "7623245623",
-    "email": "yg123@gmail.com"
-  },
-  {
-    "id": "638f67f1-5388-4a76-a0c7-a52c137aa3c6",
-    "role": 1,
-    "name": "yahssjs",
-    "password": "$2a$10$Eo49iIO15dZJHkBQGbAQUuPEc.i6OKVyobQkwuekF49qikCS9M.Zq",
-    "phonenumber": "8761426752",
-    "email": "hdhsj426@gmail.com"
-  },
-  {
-    "id": "eb1b984c-9dec-4d47-b557-1d94f8150dbd",
-    "role": 2,
-    "name": "yash",
-    "password": "$2a$10$FZ9FFGdxyDgEXnuokePrDeHmDdYJimct9i7FDf86xxUi9wVAZaRMG",
-    "phonenumber": "7777777777",
-    "email": "yahdsh123@gmail.com"
   }
 ]
