@@ -31,7 +31,6 @@ func (repo *UserRepo) SaveUser(newUser *user.User) error {
 
 	var users []user.User
 
-	// Read existing users
 	data, err := os.ReadFile(userFile)
 	if err == nil && len(data) > 0 {
 		err := json.Unmarshal(data, &users)
@@ -40,10 +39,8 @@ func (repo *UserRepo) SaveUser(newUser *user.User) error {
 		}
 	}
 
-	// Append new user
 	users = append(users, *newUser)
 
-	// Marshal and write
 	out, err := json.MarshalIndent(users, "", "  ")
 	if err != nil {
 		return err

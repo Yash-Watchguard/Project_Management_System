@@ -1,11 +1,12 @@
 package interfaces
 
-// import (
-// 	"context"
+import (
+	
 
-// 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
-// )
+	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+)
 
-// type ManagerRepository interface {
-// 	ViewAssignedProject(ctx context.Context)([]project.Project,error)
-// }
+type ManagerRepository interface {
+	ViewAllEmployee()([]user.User,error)
+}
+

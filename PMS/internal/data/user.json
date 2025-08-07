@@ -6,5 +6,21 @@
     "password": "$2a$10$RWpQ5bGnkjfJ1r0JXu/oTugVbi.LMYRm1xqpxFCJCuGZsZ7.52POe",
     "phonenumber": "7737063944",
     "email": "yg123@gmail.com"
+  },
+  {
+    "id": "6faacee5-1eb0-4b30-bb75-2ed4453d7700",
+    "role": 0,
+    "name": "rajesh",
+    "password": "$2a$10$Oxs1JibqdN6ptLlj2SoIP.Ga4TIXyyjqZtwRmNcfw7wZH1SDD5T0W",
+    "phonenumber": "7737063944",
+    "email": "rajesh123@gmail.com"
+  },
+  {
+    "id": "33a44303-d297-4d33-8bc5-72b0397b1409",
+    "role": 1,
+    "name": "rekha",
+    "password": "$2a$10$29EU8C5fb1vJySHLJCE6oeP1fPMVyj9CpReNQjO5nnetX/SuMlhw2",
+    "phonenumber": "7737063944",
+    "email": "rekha123@gmail.com"
   }
 ]

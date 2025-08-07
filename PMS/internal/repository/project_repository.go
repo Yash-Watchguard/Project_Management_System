@@ -20,29 +20,27 @@ func NewProjectRepo() *ProjectRepo {
 func (pr *ProjectRepo) AddProject(newProject project.Project) error {
 	var projects []project.Project
 
-	// Read existing data
 	data, err := os.ReadFile(pr.filePath)
+
 	if err == nil {
 		json.Unmarshal(data, &projects)
 	}
 
 	projects = append(projects, newProject)
 
-	// Save to file
-	file, err := os.Create(pr.filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
 	newData, err := json.MarshalIndent(projects, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Write(newData)
-	return err
+	err = os.WriteFile(pr.filePath, newData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
+
 func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
 	var projects []project.Project
 
@@ -50,7 +48,7 @@ func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-
+     
 	err = json.Unmarshal(data, &projects)
 	if err != nil {
 		return nil, err

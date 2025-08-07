@@ -4,6 +4,6 @@ type TaskStatus int
 
 const(
 	Pending TaskStatus= iota
-	inProgress 
+	InProgress 
 	Done
 )

@@ -16,4 +16,5 @@ type Task struct {
 	TaskStatus   status.TaskStatus  `json:"taskstatus"`
 	AssignedTo   string             `json:"assignesto"`
 	ProjectId    string              `json:"projectid"`
+	CreatesBy    string              `json:"ceatedby"`
 }
