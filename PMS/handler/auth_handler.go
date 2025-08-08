@@ -73,30 +73,30 @@ func Signup() error {
 		}
 
 	}
-	var userRole roles.Role
-	for {
-		color.Magenta("Please Enter Your Role")
-		color.Blue("Press 1 for Admin")
-		color.Blue("Press 2 for Manager")
-		color.Blue("Press 3 for Employee")
+	// var userRole roles.Role
+	
+	// 	color.Magenta("Please Enter Your Role")
+	// 	color.Blue("Press 1 for Admin")
+	// 	color.Blue("Press 2 for Manager")
+	// 	color.Blue("Press 3 for Employee")
 
-		var choice int
+	// 	var choice int
 		
-		fmt.Scanln(&choice)
+	// 	fmt.Scanln(&choice)
 
-		switch choice {
-		case 1:
-			userRole = roles.Admin
-		case 2:
-			userRole = roles.Manager
-		case 3:
-			userRole = roles.Employee
-		default:
-			color.Red("Enter Valid Choice")
-			continue
-		}
-		break
-	}
+	// 	switch choice {
+	// 	case 1:
+	// 		userRole = roles.Admin
+	// 	case 2:
+	// 		userRole = roles.Manager
+	// 	case 3:
+	// 		userRole = roles.Employee
+	// 	default:
+	// 		color.Red("Enter Valid Choice")
+	// 		continue
+	// 	}
+	// 	break
+	
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -109,7 +109,7 @@ func Signup() error {
 		Email:       email,
 		Password:    string(hashedPassword),
 		PhoneNumber: phoneNumber,
-		Role:        userRole,
+		Role:        roles.Employee,
 	}
 
 	repo := repository.NewUserRepo()
@@ -126,7 +126,7 @@ func Signup() error {
 
 func GetInput(prompt string) (string, error) {
 	str:=color.RedString(prompt)
-	fmt.Printf("%v",str)
+	fmt.Printf("%v ",str)
 	input, err := inputReader.ReadString('\n')
 	if err != nil {
 		return "", err
@@ -178,21 +178,32 @@ func Login() error {
 		color.Red("Login Faild:")
 		return err
 	}
-	mailId, err := GetValidEmail()
-	if err != nil {
-		color.Red("Login Faild:")
-		return err
+	var email string
+	for {
+		email, err = GetValidEmail()
+		if err != nil {
+			color.Red("Please Enter Valid Email Address")
+			continue
+		} else {
+			break
+		}
+
 	}
-	password, err := GetValidPassword()
-	if err != nil {
-		color.Red("Login Faild:")
-		return err
+	var password string
+	for {
+		password, err = GetValidPassword()
+		if err != nil {
+			color.Red("Please Enter Valid password")
+			continue
+		} else {
+			break
+		}
 	}
 
 	repo := repository.NewUserRepo()
 	authService := service.NewAuthService(repo)
 
-	user, err := authService.Login(name, mailId, password)
+	user, err := authService.Login(name, email, password)
 	if err != nil {
 		color.Red("----------Invalid details,Login Faild----------------")
 		return err
@@ -208,9 +219,11 @@ func Login() error {
 	
 	switch user.Role{
 	case 0:
-		AdminDashboard(ctx)
+		AdminDashboard(ctx,user)
     case 1:
 		ManagerDashboard(ctx,user)
+	case 2:
+		employeeDashboard(ctx,user)
 	}
 	return nil
 }

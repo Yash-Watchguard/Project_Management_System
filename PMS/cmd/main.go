@@ -35,13 +35,13 @@ func RunApp() error {
 		case 1:
 			err := handler.Signup()
 			if err!=nil{
-				return err
+				color.Red("%v",err)
 			}
 
 		case 2:
 			err:= handler.Login()
 			if err!=nil{
-				return err
+				color.Red("%v",err)
 			}
 
 		case 3:

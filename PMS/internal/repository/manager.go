@@ -1,17 +1,22 @@
 package repository
 
 import (
-	
-     "os"
-	 "encoding/json"
+	"encoding/json"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+	"os"
 )
 
 type ManagerRepo struct {
 	filepath string
 }
-func NewManagerRepo()*ManagerRepo{
-	return &ManagerRepo{filepath:"C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/user.json"}
+
+// PromoteEmployee implements interfaces.ManagerRepository.
+func (managerRepo *ManagerRepo) PromoteEmployee(employeeId string) error {
+	panic("unimplemented")
+}
+
+func NewManagerRepo() *ManagerRepo {
+	return &ManagerRepo{filepath: "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/user.json"}
 }
 
 func (managerRepo *ManagerRepo) ViewAllEmployee() ([]user.User, error) {
@@ -33,7 +38,7 @@ func (managerRepo *ManagerRepo) ViewAllEmployee() ([]user.User, error) {
 	}
 
 	for _, user := range users {
-		if user.Role == 2{
+		if user.Role == 2 {
 			employees = append(employees, user)
 		}
 	}

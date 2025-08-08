@@ -9,7 +9,7 @@ type UserRepository interface {
 	SaveUser(user *user.User)error
 	IsUserPresent(name,email,password string)(*user.User,error)
 	ViewProfile(userId string)([]user.User,error)
-	GetAllUsers()[]user.User
+	GetAllUsers()([]user.User,error)
 	DeleteUserById(userId string)error
 	UpdateProfile(userId string,name string, email string,password string,number string)error
 	GetAllManager()error

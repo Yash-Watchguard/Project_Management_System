@@ -8,5 +8,6 @@ import (
 
 type ManagerRepository interface {
 	ViewAllEmployee()([]user.User,error)
+	PromoteEmployee(employeeId string)error
 }
 

@@ -1,18 +1,18 @@
 [
   {
-    "projectid": "2523edd0-c1c0-4673-a453-0650fb1a9d47",
+    "projectid": "c3dfc8eb-0934-47da-8315-5a7f66534455",
     "project_name": "pms",
-    "project_description": "hdhdjsdsdkjshdsjdhs",
-    "deadline": "2025-12-19T00:00:00Z",
-    "created_by": "6faacee5-1eb0-4b30-bb75-2ed4453d7700",
-    "assigned_manager_id": "33a44303-d297-4d33-8bc5-72b0397b1409"
+    "project_description": "manage projects",
+    "deadline": "2025-12-23T00:00:00Z",
+    "created_by": "b64aee54-9f0c-4c13-828b-c595df9080d8",
+    "assigned_manager_id": "3ef8ecfb-3183-4f26-876e-4110e653d094"
   },
   {
-    "projectid": "b5857f75-c910-4f10-81e3-bade017fca43",
-    "project_name": "hotel management system",
-    "project_description": "for mabjsdsjd hotel work",
-    "deadline": "2025-10-23T00:00:00Z",
-    "created_by": "6faacee5-1eb0-4b30-bb75-2ed4453d7700",
-    "assigned_manager_id": "33a44303-d297-4d33-8bc5-72b0397b1409"
+    "projectid": "8404e88a-fe18-4a12-9eaf-efe807f28a31",
+    "project_name": "kddsjsjkdsj",
+    "project_description": "hjshgvdhfdjhd",
+    "deadline": "2026-12-23T00:00:00Z",
+    "created_by": "b64aee54-9f0c-4c13-828b-c595df9080d8",
+    "assigned_manager_id": "3ef8ecfb-3183-4f26-876e-4110e653d094"
   }
 ]

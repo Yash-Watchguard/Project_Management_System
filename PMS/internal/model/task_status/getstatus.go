@@ -12,3 +12,15 @@ func GetStatusString(status TaskStatus) string {
 		return "Unknown"
 	}
 }
+func GetStatusFromString(statusStr string) TaskStatus {
+	switch statusStr {
+	case "pending":
+		return Pending
+	case "in progress":
+		return InProgress
+	case "done":
+		return Done
+	default:
+		return Pending
+	}
+}

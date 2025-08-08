@@ -98,15 +98,21 @@ func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
 	return nil, errors.New("user not found")
 }
 
-func (ur *UserRepo) GetAllUsers() []user.User {
+func (ur *UserRepo) GetAllUsers() ([]user.User,error) {
 	data, err := os.ReadFile(userFile)
 	if err != nil {
-		return []user.User{}
+		return []user.User{},err
+	}
+    if len(data)==0{
+        return []user.User{},errors.New("no users present")
+	}
+	var users []user.User
+	err= json.Unmarshal(data, &users)
+	if err!=nil{
+		return users,err
 	}
 
-	var users []user.User
-	_ = json.Unmarshal(data, &users)
-	return users
+	return users,err
 }
 
 func (ur *UserRepo) DeleteUserById(userId string) error {

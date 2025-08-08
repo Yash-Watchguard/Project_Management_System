@@ -37,26 +37,29 @@ func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
 
 	return projectTasks, nil
 }
-func (taskRepo *TaskRepo)SaveTask(newTask task.Task) error {
-
+func (taskRepo *TaskRepo) SaveTask(newTask task.Task) error {
 	var tasks []task.Task
 
 	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	err = json.Unmarshal(data, &tasks)
-	if err!=nil{
-		return err
+	if len(data) > 0 {
+		err = json.Unmarshal(data, &tasks)
+		if err != nil {
+			return err
+		}
+	} else {
+		tasks = []task.Task{} 
 	}
+
 	tasks = append(tasks, newTask)
 
 	newData, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
 		return err
 	}
-
 	err = os.WriteFile(taskRepo.filepath, newData, 0644)
 	if err != nil {
 		return err
@@ -64,6 +67,7 @@ func (taskRepo *TaskRepo)SaveTask(newTask task.Task) error {
 
 	return nil
 }
+
 
 func (taskRepo *TaskRepo) DeleteTask(taskId string) error {
 	var tasks []task.Task

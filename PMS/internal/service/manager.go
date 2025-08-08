@@ -10,6 +10,8 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
+
 )
 
 type ManagerService struct {
@@ -17,10 +19,11 @@ type ManagerService struct {
 	projectRepo interfaces.ProjectRepository
 	taskRepo    interfaces.TaskRepo
 	managerRepo interfaces.ManagerRepository
+	commentRepo interfaces.CommentRepo
 }
 
-func NewManagerService(userRepo interfaces.UserRepository, projectRepo interfaces.ProjectRepository,taskRepo interfaces.TaskRepo,managerRepo interfaces.ManagerRepository) *ManagerService {
-	return &ManagerService{userRepo: userRepo, projectRepo: projectRepo,taskRepo: taskRepo,managerRepo: managerRepo}
+func NewManagerService(userRepo interfaces.UserRepository, projectRepo interfaces.ProjectRepository,taskRepo interfaces.TaskRepo,managerRepo interfaces.ManagerRepository,commentRepo interfaces.CommentRepo) *ManagerService {
+	return &ManagerService{userRepo: userRepo, projectRepo: projectRepo,taskRepo: taskRepo,managerRepo: managerRepo,commentRepo: commentRepo}
 }
 
 func(manager *ManagerService)ViewProfile(ctx context.Context,userId string)([]user.User,error){
@@ -94,4 +97,34 @@ func(manager *ManagerService)ViewAllEmplpyee(ctx context.Context)([]user.User,er
 		return []user.User{},errors.New("unauthorized access")
 	}
 	return manager.managerRepo.ViewAllEmployee()
+}
+
+func (manager *ManagerService) PromoteEmployee(ctx context.Context, employeeId string) error {
+	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)
+
+	if userRole != 0 {
+		return errors.New("unauthorized person")
+	}
+	return manager.managerRepo.PromoteEmployee(employeeId)
+}
+
+func (manager *ManagerService) DeleteComment(ctx context.Context, commentId string) error {
+
+	userId := ctx.Value(ContextKey.UserId).(string)
+	return manager.commentRepo.DeleteComment(userId, commentId)
+}
+func (manager *ManagerService) AddComment(newComment comment.Comment) error {
+	return manager.commentRepo.AddComment(newComment)
+}
+
+func (manager *ManagerService) UpdateComment(ctx context.Context, commentId string, updatedComment string) error {
+
+	userId := ctx.Value(ContextKey.UserId).(string)
+
+	return manager.commentRepo.UpdateComment(userId, commentId, updatedComment)
+}
+
+func (manager *ManagerService) ViewAllComment(taskId string) ([]comment.Comment, error) {
+
+	return manager.commentRepo.ViewAllComments(taskId)
 }
