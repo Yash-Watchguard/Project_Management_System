@@ -1,13 +1,13 @@
 package constants
 
 const (
-	WelcomeMSG = "----------------------------------Welcome in Tasknest🫶----------------------"
+	WelcomeMSG = "----------------------------------Welcome To Tasknest🫶----------------------"
 	AdminDashbEntry="----------------------------Admin Dashboard----------------------------"
 	ManagerDashbEntry="--------------------------Manager Dashboard----------------------------"
 	EmployDashbEntry="---------------------------Employee Dashboard----------------------------"
-    SignupChoice="For Signup press 1"
-	LoginChoice="For Login Press 2"
-	ExitChoice="For Exit Press 3"
+    SignupChoice="1. Signup"
+	LoginChoice="2. Login"
+	ExitChoice="3. Exit"
 	GoodByeMsg="Bye Bye 👋"
 	InvalidChoice="Invalid choice, Try again."
 )

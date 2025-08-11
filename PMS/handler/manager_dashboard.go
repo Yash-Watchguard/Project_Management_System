@@ -39,7 +39,7 @@ func ManagerDashboard(ctx context.Context, users *user.User) {
 		color.Cyan("5. Create Task")
 		color.Cyan("6. Get Project Status")
 		color.Cyan("7. Logout")
-
+        fmt.Print(color.CyanString("Enter your choice: "))
 		var choice int
 		fmt.Scanln(&choice)
 

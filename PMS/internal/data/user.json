@@ -30,5 +30,13 @@
     "password": "$2a$10$w5xwBx/vw1NiC/FbD0e7fOUDCV0bv6OBm0xwiaJrmRAp6BoBP8Y92",
     "phonenumber": "7737063944",
     "email": "yash123@gmail.com"
+  },
+  {
+    "id": "ba866ac5-19c7-4b10-886a-02fca344aa26",
+    "role": 2,
+    "name": "sahil",
+    "password": "$2a$10$nmYh4oZasw3quTgS.B.Hf.rgmn6crmrq5/q7eiEcYhRaGatZgw7dq",
+    "phonenumber": "7737063944",
+    "email": "sahil123@gmail.com"
   }
 ]

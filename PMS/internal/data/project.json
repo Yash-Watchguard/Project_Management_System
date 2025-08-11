@@ -14,5 +14,13 @@
     "deadline": "2026-12-23T00:00:00Z",
     "created_by": "b64aee54-9f0c-4c13-828b-c595df9080d8",
     "assigned_manager_id": "3ef8ecfb-3183-4f26-876e-4110e653d094"
+  },
+  {
+    "projectid": "858ffe22-318c-4389-978a-5bcf1ae0f2c4",
+    "project_name": "github clone",
+    "project_description": "sjdsjdshdsd",
+    "deadline": "2026-12-23T00:00:00Z",
+    "created_by": "b64aee54-9f0c-4c13-828b-c595df9080d8",
+    "assigned_manager_id": "7ef58a0c-54e3-41fd-9c46-1a94df759a17"
   }
 ]

@@ -11,12 +11,11 @@ import (
 	"context"
 
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
-	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+	// "github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	"github.com/Yash-Watchguard/Tasknest/internal/service"
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
-
 	"github.com/fatih/color"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,7 +33,7 @@ func SetInputReader(r io.Reader) {
 func Signup() error {
 	
 	 
-		name ,err:=GetInput("Enter name:")
+		name ,err:=GetInput("Enter name : ")
 	    if err != nil {
 	    return err
 	   }
@@ -43,7 +42,7 @@ func Signup() error {
 	for {
 		email, err = GetValidEmail()
 		if err != nil {
-			color.Red("Please Enter Valid Email Address")
+			color.Red("Please Enter Valid Email Address : ")
 			continue
 		} else {
 			break
@@ -55,7 +54,7 @@ func Signup() error {
 	for {
 		password, err = GetValidPassword()
 		if err != nil {
-			color.Red("Please Enter Valid password")
+			color.Red("Please Enter Valid password : ")
 			continue
 		} else {
 			break
@@ -66,7 +65,7 @@ func Signup() error {
 	for {
 		phoneNumber, err = GetValidPhoneNumber()
 		if err != nil {
-			color.Red("Please Enter Valid Phone number")
+			color.Red("Please Enter Valid Phone number : ")
 			continue
 		} else {
 			break
@@ -74,7 +73,7 @@ func Signup() error {
 
 	}
 	// var userRole roles.Role
-	
+	// for {
 	// 	color.Magenta("Please Enter Your Role")
 	// 	color.Blue("Press 1 for Admin")
 	// 	color.Blue("Press 2 for Manager")
@@ -96,7 +95,7 @@ func Signup() error {
 	// 		continue
 	// 	}
 	// 	break
-	
+	// }
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -109,7 +108,7 @@ func Signup() error {
 		Email:       email,
 		Password:    string(hashedPassword),
 		PhoneNumber: phoneNumber,
-		Role:        roles.Employee,
+		Role:        2,
 	}
 
 	repo := repository.NewUserRepo()
@@ -126,7 +125,7 @@ func Signup() error {
 
 func GetInput(prompt string) (string, error) {
 	str:=color.RedString(prompt)
-	fmt.Printf("%v ",str)
+	fmt.Printf("%v",str)
 	input, err := inputReader.ReadString('\n')
 	if err != nil {
 		return "", err
@@ -135,7 +134,7 @@ func GetInput(prompt string) (string, error) {
 }
 
 func GetValidEmail() (string, error) {
-	email, err := GetInput("Enter Email: ")
+	email, err := GetInput("Enter Email : ")
 	if err != nil {
 		return "", err
 	}
@@ -147,7 +146,7 @@ func GetValidEmail() (string, error) {
 }
 
 func GetValidPhoneNumber() (string, error) {
-	number, err := GetInput("Enter Phone Number: ")
+	number, err := GetInput("Enter Phone Number : ")
 	if err != nil {
 		return "", err
 	}
@@ -173,37 +172,26 @@ func GetValidPassword() (string, error) {
 func Login() error {
 
 	
-	name, err := GetInput("Enter name:")
+	name, err := GetInput("Enter name : ")
 	if err != nil {
-		color.Red("Login Faild:")
+		color.Red("Login Faild")
 		return err
 	}
-	var email string
-	for {
-		email, err = GetValidEmail()
-		if err != nil {
-			color.Red("Please Enter Valid Email Address")
-			continue
-		} else {
-			break
-		}
-
+	mailId, err := GetValidEmail()
+	if err != nil {
+		color.Red("Login Faild")
+		return err
 	}
-	var password string
-	for {
-		password, err = GetValidPassword()
-		if err != nil {
-			color.Red("Please Enter Valid password")
-			continue
-		} else {
-			break
-		}
+	password, err := GetValidPassword()
+	if err != nil {
+		color.Red("Login Faild")
+		return err
 	}
 
 	repo := repository.NewUserRepo()
 	authService := service.NewAuthService(repo)
 
-	user, err := authService.Login(name, email, password)
+	user, err := authService.Login(name, mailId, password)
 	if err != nil {
 		color.Red("----------Invalid details,Login Faild----------------")
 		return err
@@ -222,11 +210,14 @@ func Login() error {
 		AdminDashboard(ctx,user)
     case 1:
 		ManagerDashboard(ctx,user)
-	case 2:
-		employeeDashboard(ctx,user)
-	}
-	return nil
+	
+    case 2:
+	employeeDashboard(ctx,user)
+	
 }
+return nil
+}
+
 
 // func DashBoard(user *model.User) {
 // 	if user.Role == "Admin" {
@@ -237,4 +228,4 @@ func Login() error {
 // 		//    EmployeeDashboard(user)
 // 	}
 
-// }
+// 

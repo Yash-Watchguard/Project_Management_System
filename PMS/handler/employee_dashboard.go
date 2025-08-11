@@ -32,7 +32,7 @@ func employeeDashboard(ctx context.Context,user *user.User){
 		color.Blue("4. Logout")
 
 		var choice int
-		fmt.Print(color.GreenString("Enter your choice: "))
+		fmt.Print(color.CyanString("Enter your choice: "))
 		fmt.Scanln(&choice)
 
 		switch choice{
@@ -74,7 +74,7 @@ func viewAssignedTask(emp *service.EmployeeService, ctx context.Context, empId s
 	}
 
 	if len(tasks) == 0 {
-		color.Yellow("No tasks found for this project.")
+		color.Yellow("No tasks Assigned.")
 		return nil
 	}
 

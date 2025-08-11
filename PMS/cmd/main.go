@@ -28,6 +28,8 @@ func RunApp() error {
 		color.Blue(constants.LoginChoice)
 		color.Blue(constants.ExitChoice)
 
+		fmt.Print(color.CyanString("Enter Your Choice : "))
+
 		var Choice int
 		fmt.Scanln(&Choice)
 
