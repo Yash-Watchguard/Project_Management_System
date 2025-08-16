@@ -11,7 +11,7 @@ type CommentRepo struct {
 }
 
 func NewCommentRepo() *CommentRepo {
-	return &CommentRepo{filepPath: "C:/Users/ygoyal/Desktop/PMS_Project/PMS/internal/data/comment.json"}
+	return &CommentRepo{filepPath: "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/comment.json"}
 }
 
 func (cr *CommentRepo) ViewAllComments(taskId string) ([]comment.Comment, error) {

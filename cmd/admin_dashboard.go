@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 
-	"fmt"
-
 	"github.com/Yash-Watchguard/Tasknest/handler"
 	"github.com/Yash-Watchguard/Tasknest/internal/constants"
-	
+	"strconv"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	
@@ -27,9 +25,8 @@ func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.Us
 		// color.Blue("7. Delete Project")
 		color.Blue("6. Logout")
 
-		var choice int
-		fmt.Print(color.GreenString("Enter your choice: "))
-		fmt.Scanln(&choice)
+	    choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {
 		case 1:
@@ -75,9 +72,8 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
         color.Blue("3. Delete Project")
         color.Blue("4. Back")
 
-        var choice int
-        fmt.Print(color.GreenString("Enter your choice: "))
-        fmt.Scanln(&choice)
+        choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choice, _ := strconv.Atoi(choiceStr)
 
         switch choice {
         case 1:
@@ -94,7 +90,10 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
             taskMenu(ctx, taskHandler, commentHandler, projectId)
 
         case 3:
-            _ = projectHandler.DeleteProject(ctx)
+            err:= projectHandler.DeleteProject(ctx)
+			if err != nil {
+			 		color.Red("%v", err)
+			 	}
 
         case 4:
             return
@@ -124,8 +123,8 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
         color.Cyan("4. Delete Comment")
         color.Cyan("5. Back")
 
-        var choice int
-        fmt.Scan(&choice)
+       choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+    choice, _ := strconv.Atoi(choiceStr)
 
         switch choice {
         case 1:
@@ -134,7 +133,7 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
 				color.Red("%s",err)
 			}
         case 2:
-            err:= commentHandler.AddComment(ctx, taskId)
+            err:= commentHandler.AddNewComment(ctx, taskId)
 			if err!=nil{
 				color.Red("%s",err)
 			}

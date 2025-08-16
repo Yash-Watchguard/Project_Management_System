@@ -14,7 +14,7 @@ type TaskRepo struct {
 }
 
 func NewTaskRepo() *TaskRepo {
-	return &TaskRepo{filepath: "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/task.json"}
+	return &TaskRepo{filepath: "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/task.json"}
 }
 
 func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
@@ -22,7 +22,9 @@ func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-
+     if len(data) == 0 {
+    return []task.Task{}, nil
+    }
 	var allTasks []task.Task
 	err = json.Unmarshal(data, &allTasks)
 	if err != nil {

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	
-	"fmt"
+	"strconv"
 	
     "github.com/Yash-Watchguard/Tasknest/handler"
 	
@@ -30,10 +30,9 @@ func ManagerDashboard(
 		color.Cyan("3. View All Employees")
 		color.Cyan("4. Promote Employee")
 		color.Cyan("5. Logout")
-		fmt.Print(color.CyanString("Enter your choice: "))
 
-		var choice int
-		fmt.Scanln(&choice)
+		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {
 		case 1:
@@ -67,13 +66,11 @@ func assignedProjectsMenu(ctx context.Context, user *user.User, ph *handler.Proj
 
 	color.Blue("Press 1 to manage a project")
 	color.Blue("Press 2 to go back")
-	var choice int
-	fmt.Scanln(&choice)
-
+	choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+    choice, _ := strconv.Atoi(choiceStr)
 	if choice == 1 {
 		var projectId string
-		color.Blue("Enter Project Id: ")
-		fmt.Scanln(&projectId)
+		projectId,_=handler.GetInput("Enter Project Id : ")
 		projectTaskMenu(ctx, projectId, th,ph, ch)
 	}
 }
@@ -86,10 +83,8 @@ func projectTaskMenu(ctx context.Context, projectId string, th *handler.TaskHand
 		color.Cyan("4. Show Project Status")
 		color.Cyan("5. Back")
 		color.Cyan("---------------------------------")
-		fmt.Print(color.CyanString("Enter your choice: "))
-
-		var choice int
-		fmt.Scanln(&choice)
+		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {
 		case 1:

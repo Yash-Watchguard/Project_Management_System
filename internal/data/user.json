@@ -1,42 +1,26 @@
 [
   {
-    "id": "b64aee54-9f0c-4c13-828b-c595df9080d8",
+    "id": "4f46dd72-ae31-4df8-ab1b-a9deaee92815",
     "role": 0,
-    "name": "rajesh goyal",
-    "password": "$2a$10$DMLWgT9CNSi/w8CEDejYKeEj/UAHVjzoA8ZcWWvZwGxIwsy2LwU7m",
+    "name": "yash",
+    "password": "$2a$10$Gv23hnLikWR78q7ohbvaS.2IC/vtcSKFsNWkrczYoL3nkzy6dFPsy",
     "phonenumber": "7737063944",
-    "email": "rajeshgoyal123@gmail.com"
+    "email": "yash@gmail.com"
   },
   {
-    "id": "3ef8ecfb-3183-4f26-876e-4110e653d094",
+    "id": "fbfef9e8-cd73-407d-980f-bc59e378f21b",
     "role": 1,
     "name": "jaid",
-    "password": "$2a$10$iVNcTIjh18vVB8I62cLDEOU0VDBA54TLBsoXDDSIvLJXmBW1TeZOy",
+    "password": "$2a$10$1bSFg32hdDtNzB9iA9H9h.C2ryHS5p5kPtm5G3uGBCN.Fz7tXk2lu",
     "phonenumber": "7737063944",
-    "email": "jaid123@gmail.com"
+    "email": "jaid@gmail.com"
   },
   {
-    "id": "7ef58a0c-54e3-41fd-9c46-1a94df759a17",
-    "role": 1,
-    "name": "nitin",
-    "password": "$2a$10$3YX2.6zpP9nocID2RW6De.OeEOceiJF0SVL0Kh8cVWZJOtTK0ioza",
-    "phonenumber": "7737063944",
-    "email": "nitin123@gmail.com"
-  },
-  {
-    "id": "284fe311-0fe0-4f80-9b1b-04e1472ebad7",
+    "id": "f63e8e1b-8388-4930-a036-e34200d33e1c",
     "role": 2,
-    "name": "yash",
-    "password": "$2a$10$w5xwBx/vw1NiC/FbD0e7fOUDCV0bv6OBm0xwiaJrmRAp6BoBP8Y92",
+    "name": "krishna",
+    "password": "$2a$10$7fa5Vq675IH1yBEmQ6lLBuORwCIXnbstbOc7dIP9ZLXPTOX940tFG",
     "phonenumber": "7737063944",
-    "email": "yash123@gmail.com"
-  },
-  {
-    "id": "ba866ac5-19c7-4b10-886a-02fca344aa26",
-    "role": 2,
-    "name": "sahil",
-    "password": "$2a$10$nmYh4oZasw3quTgS.B.Hf.rgmn6crmrq5/q7eiEcYhRaGatZgw7dq",
-    "phonenumber": "7737063944",
-    "email": "sahil123@gmail.com"
+    "email": "krishna@gmail.com"
   }
 ]

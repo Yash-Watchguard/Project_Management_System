@@ -127,14 +127,19 @@ func(au *authHandler)Signup() error {
 	return nil
 }
 
-func GetInput(prompt string) (string, error){
-	str:=color.RedString(prompt)
-	fmt.Printf("%v",str)
-	input, err := inputReader.ReadString('\n')
+func GetInput(prompt string) (string, error) {
+	fmt.Print(color.RedString(prompt))
+	input, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimSpace(input), nil
+}
+
+// Pause waits for user to press Enter
+func Pause() {
+	fmt.Print(color.BlueString("Press Enter to go back..."))
+	reader.ReadString('\n') // ignore error intentionally
 }
 
 func GetValidEmail() (string, error) {

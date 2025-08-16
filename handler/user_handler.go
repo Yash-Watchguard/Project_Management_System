@@ -195,7 +195,7 @@ func(uh *UserHandler)DeleteUser( ctx context.Context) error {
 	return nil
 }
 func(uh *UserHandler)PromoteEmployee(ctx context.Context)error{
-	users, err := uh.userService.ViewAllUsers(ctx)
+	users, err := uh.userService.ViewAllEmplpyee(ctx)
 	if err != nil {
 		return nil
 	}
@@ -204,7 +204,7 @@ func(uh *UserHandler)PromoteEmployee(ctx context.Context)error{
 		if user.Role == 0 || user.Role == 1 {
 			continue
 		}
-		color.Blue("---------------------user %v----------------", key+1)
+		color.Blue("---------------------Employee %v----------------", key+1)
 		color.Yellow("Name- %v ", user.Name)
 		color.Yellow("Id - %v", user.Id)
 		color.Yellow("Role- %v", roles.RoleParser(user.Role))
@@ -232,7 +232,7 @@ func(uh *UserHandler)PromoteEmployee(ctx context.Context)error{
 }
 
 func (uh *UserHandler) ViewAllEmployees(ctx context.Context) error {
-	users, err := uh.userService.ViewAllEmplpyee(ctx) // fixed typo: ViewAllEmployee
+	users, err := uh.userService.ViewAllEmplpyee(ctx) 
 	if err != nil {
 		color.Red("Error fetching employees: %v", err)
 		return err

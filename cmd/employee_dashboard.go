@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 
 	"github.com/Yash-Watchguard/Tasknest/handler"
 	"github.com/Yash-Watchguard/Tasknest/internal/constants"
@@ -20,9 +20,8 @@ func employeeDashboard(ctx context.Context, user *user.User,userHandler *handler
 		color.Blue("3  Update Task Status")
 		color.Blue("4. Logout")
 
-		var choice int
-		fmt.Print(color.CyanString("Enter your choice: "))
-		fmt.Scanln(&choice)
+		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice{
 		case 1:

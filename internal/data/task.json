@@ -1,35 +1,24 @@
 [
   {
-    "task_id": "403918ac-1bb9-46d6-b481-d65602e4d781",
+    "task_id": "df39bf95-d1c2-4948-b2f1-6f16818e14c7",
     "titel": "frontend",
-    "description": "djsdjdskdsjdk",
-    "deadline": "2025-12-23T00:00:00Z",
+    "description": "create and add button",
+    "deadline": "2025-09-10T00:00:00Z",
     "taskpriority": 0,
-    "taskstatus": 0,
-    "assignesto": "7224bdf5-31b3-48cb-a51d-00433b31c578",
-    "projectid": "c3dfc8eb-0934-47da-8315-5a7f66534455",
-    "ceatedby": "3ef8ecfb-3183-4f26-876e-4110e653d094"
+    "taskstatus": 2,
+    "assignesto": "f63e8e1b-8388-4930-a036-e34200d33e1c",
+    "projectid": "ae4bdfbd-27d1-4c98-953d-ee517d6b7fa5",
+    "ceatedby": "fbfef9e8-cd73-407d-980f-bc59e378f21b"
   },
   {
-    "task_id": "337c97c7-b8bc-469c-a0fa-d98221f41fa1",
+    "task_id": "2066ddc7-1dfe-4de5-b6c5-bd80defb9604",
     "titel": "backend",
-    "description": "jskldjsksd",
-    "deadline": "2026-10-25T00:00:00Z",
+    "description": "jbjhbj",
+    "deadline": "2025-12-23T00:00:00Z",
     "taskpriority": 2,
     "taskstatus": 0,
-    "assignesto": "7224bdf5-31b3-48cb-a51d-00433b31c578",
-    "projectid": "c3dfc8eb-0934-47da-8315-5a7f66534455",
-    "ceatedby": "3ef8ecfb-3183-4f26-876e-4110e653d094"
-  },
-  {
-    "task_id": "aff0f5c1-bdab-4e29-8089-7f8dfde68f0c",
-    "titel": "hds",
-    "description": "sjdsjkddj",
-    "deadline": "2025-12-24T00:00:00Z",
-    "taskpriority": 0,
-    "taskstatus": 0,
-    "assignesto": "5f02686a-e3e4-44a8-bb7c-605c61b000d0",
-    "projectid": "5f02686a-e3e4-44a8-bb7c-605c61b000d0",
-    "ceatedby": "7ef58a0c-54e3-41fd-9c46-1a94df759a17"
+    "assignesto": "f63e8e1b-8388-4930-a036-e34200d33e1c",
+    "projectid": "ae4bdfbd-27d1-4c98-953d-ee517d6b7fa5",
+    "ceatedby": "fbfef9e8-cd73-407d-980f-bc59e378f21b"
   }
 ]

@@ -14,7 +14,7 @@ type ProjectRepo struct {
 }
 
 func NewProjectRepo() *ProjectRepo {
-	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/project.json"}
+	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/project.json"}
 }
 
 func (pr *ProjectRepo) AddProject(newProject project.Project) error {

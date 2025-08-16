@@ -25,7 +25,7 @@ func NewTaskService(taskRepo interfaces.TaskRepo,empRepo interfaces.EmployeeRepo
 func (ts *TaskService) ViewAllTask(ctx context.Context, projectId string) ([]task.Task, error) {
 	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)
 
-	if userRole != 0 {
+	if userRole == 2  {
 		return []task.Task{}, errors.New("unauthorized access")
 	}
 	return ts.taskRepo.ViewAllTask(projectId)

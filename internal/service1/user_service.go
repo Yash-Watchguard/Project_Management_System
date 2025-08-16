@@ -79,9 +79,9 @@ func (u * UserService) PromoteEmployee(ctx context.Context, employeeId string) e
 	return u.userRepo.PromoteEmployee(employeeId)
 }
 func(u *UserService)ViewAllEmplpyee(ctx context.Context)([]user.User,error){
-	userRole:=ctx.Value(ContextKey.UserId).(roles.Role)
+	userRole:=ctx.Value(ContextKey.UserRole).(roles.Role)
 
-    if userRole!=1{
+    if userRole==2{
 		return []user.User{},errors.New("unauthorized access")
 	}
 	return u.userRepo.ViewAllEmployee()

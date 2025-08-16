@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	userFile = "C:/Users/ygoyal/Desktop/PMS_Project/Pms/internal/data/user.json"
+	userFile = "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/user.json"
 	mu       sync.Mutex
 )
 
@@ -278,7 +278,7 @@ func (ur *UserRepo) ViewAllEmployee() ([]user.User, error) {
 	}
 
 	for _, user := range users {
-		if user.Role == 2 {
+		if user.Role == roles.Employee {
 			employees = append(employees, user)
 		}
 	}
