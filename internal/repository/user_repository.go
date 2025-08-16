@@ -78,7 +78,7 @@ func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, e
 
 	return nil, errors.New("invalid details")
 }
-func (repo *UserRepo) ViewProfile(userId) ([]user.User, error) {
+func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
 	data, err := os.ReadFile(userFile)
 	if err != nil {
 		return nil, errors.New("error in readfile")
