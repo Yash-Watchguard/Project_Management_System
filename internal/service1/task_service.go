@@ -15,11 +15,11 @@ import (
 
 type TaskService struct{
 	taskRepo    interfaces.TaskRepo
-	empRepo  interfaces.EmployeeRepo
+	
 }
 
-func NewTaskService(taskRepo interfaces.TaskRepo,empRepo interfaces.EmployeeRepo)*TaskService{
-	return &TaskService{taskRepo: taskRepo,empRepo: empRepo}
+func NewTaskService(taskRepo interfaces.TaskRepo)*TaskService{
+	return &TaskService{taskRepo: taskRepo}
 }
 
 func (ts *TaskService) ViewAllTask(ctx context.Context, projectId string) ([]task.Task, error) {

@@ -1,152 +1,128 @@
 package repository
 
-import ("errors"
-"os"
-"encoding/json"
-"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
+import (
+	"database/sql"
+	"errors"
+
+	"github.com/Yash-Watchguard/Tasknest/internal/config"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
 )
 
 type CommentRepo struct {
-	filepPath string
+	db *sql.DB
 }
 
-func NewCommentRepo() *CommentRepo {
-	return &CommentRepo{filepPath: "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/comment.json"}
+func NewCommentRepo(db *sql.DB) *CommentRepo {
+	return &CommentRepo{db: db}
 }
 
 func (cr *CommentRepo) ViewAllComments(taskId string) ([]comment.Comment, error) {
+    rows, err := cr.db.Query(
+        config.SelectQuery("comments", []string{"comment_id", "task_id", "created_by", "comment"}, "task_id"),
+        taskId,
+    )
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close() 
 
+    var comments []comment.Comment
+    for rows.Next() {
+        var c comment.Comment
+        err = rows.Scan(&c.CommentId, &c.TaskId, &c.CreatedBy, &c.Content)
+        if err != nil {
+            return nil, err
+        }
+        comments = append(comments, c)
+    }
 
-	data, err := os.ReadFile(cr.filepPath)
-	if err != nil {
-		return nil, errors.New("failed to read comments file")
-	}
-    
-	var allComments []comment.Comment
-	if err := json.Unmarshal(data, &allComments); err != nil {
-		return nil, errors.New("failed to parse comments")
-	}
+    if len(comments) == 0 {
+        return nil, errors.New("no comments found for this task")
+    }
 
-	var comments []comment.Comment
-	for _, comment := range allComments {
-		if comment.TaskId == taskId {
-			comments= append(comments, comment)
-		}
-	}
-
-	return comments, nil
+    return comments, nil
 }
+
 func (cr *CommentRepo) UpdateComment(updatedComment comment.Comment) error {
-	commentData, err := os.ReadFile(cr.filepPath)
-	if err != nil {
-		return errors.New("error reading comment data")
-	}
+	var existingCreatedBy,existingTaskId string
 
-	var comments []comment.Comment
-	if len(commentData) > 0 {
-		if err := json.Unmarshal(commentData, &comments); err != nil {
-			return err
+	query:="SELECT created_by, task_id FROM comments WHERE comment_id = ?"
+
+	row:=cr.db.QueryRow(query,updatedComment.CommentId)
+    
+	err:=row.Scan(&existingCreatedBy,&existingTaskId)
+
+	if err!=nil{
+		if err==sql.ErrNoRows{
+			return errors.New("no comments found with the given Id")
 		}
-	}
-
-	found := false
-	for i := range comments {
-		if comments[i].CommentId == updatedComment.CommentId {
-			
-			if updatedComment.CreatedBy != comments[i].CreatedBy {
-				return errors.New("you are not authorized to update this comment")
-			}
-
-			
-			if updatedComment.TaskId != comments[i].TaskId {
-				return errors.New("comment does not belong to the specified task")
-			}
-
-		
-			comments[i].Content = updatedComment.Content
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.New("no comment found with the given ID")
-	}
-	updatedData, err := json.MarshalIndent(comments, "", "  ")
-	if err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(cr.filepPath, updatedData, 0644); err != nil {
+	// authorizat
+
+	if updatedComment.CreatedBy!=existingCreatedBy{
+		return errors.New("you are not authorized to update this comment")
+	}
+	if updatedComment.TaskId!=existingTaskId{
+		return errors.New("comment does not belong to the specified task")
+	}
+
+	query="UPDATE comments SET comment = ? WHERE comment_id = ?"
+	result,err:=cr.db.Exec(query,updatedComment.Content,updatedComment.CommentId)
+
+	if err!=nil{
 		return err
 	}
 
+	rowAffected,err:=result.RowsAffected()
+	if err!=nil{
+		return err
+	}
+	if rowAffected==0{
+		return errors.New("no comment updated")
+	}
 	return nil
 }
 
 
 func (cr *CommentRepo) AddComment(newComment comment.Comment) error {
-    commentData, err := os.ReadFile(cr.filepPath)
+    // Prepare the INSERT query
+    query := `
+        INSERT INTO comments (comment_id, task_id, created_by, comment)
+        VALUES (?, ?, ?, ?)
+    `
+
+    // Execute the query with the comment data
+    _, err := cr.db.Exec(query, newComment.CommentId, newComment.TaskId, newComment.CreatedBy, newComment.Content)
     if err != nil {
-       return errors.New("eror in reading file")
+        return err
+    }
+    return nil
+}
+
+
+func (cr *CommentRepo) DeleteComment(userId, commentId string) error {
+    // Delete query with condition on comment_id and created_by
+    query := `
+        DELETE FROM comments
+        WHERE comment_id = ? AND created_by = ?
+    `
+
+    result, err := cr.db.Exec(query, commentId, userId)
+    if err != nil {
+        return err
     }
 
-    var comments []comment.Comment
-    if len(commentData)!=0{
-    json.Unmarshal(commentData, &comments)
-	}
-    comments = append(comments, newComment)
-
-    updatedData, err := json.MarshalIndent(comments, "", "  ")
+    // Check if any row was actually deleted
+    rowsAffected, err := result.RowsAffected()
     if err != nil {
-        return errors.New("error marshaling")
+        return err
     }
-
-    if err := os.WriteFile(cr.filepPath, updatedData, 0644); err != nil {
-        return errors.New("error in writing")
+    if rowsAffected == 0 {
+        return errors.New("either comment not found or you are not authorized to delete it")
     }
 
     return nil
 }
 
-
-func(cr *CommentRepo)DeleteComment(userId string,commentId string)error{
-	commentData,err:=os.ReadFile(cr.filepPath)
-	if err!=nil{
-        return errors.New("error in reading data")
-	}
-    if len(commentData)==0{
-		return errors.New("no comment for delete")
-	}
-	var comments []comment.Comment
-
-	if err :=json.Unmarshal(commentData,&comments);err!=nil{
-		return errors.New("error in unmarshal")
-	}
-
-	var updatedComment []comment.Comment
-	flound:=false
-	for _,comment:=range comments{
-		if comment.CommentId==commentId {
-			if userId!=comment.CreatedBy{
-				return errors.New("you are not authorized to Delete")
-			}
-			flound=true
-		}else{
-		updatedComment=append(updatedComment, comment)
-		}
-	}
-	if !flound{
-		return errors.New("enter valid comment id")
-	}
-
-	updatedData, err := json.MarshalIndent(updatedComment, "", "  ")
-	if err != nil {
-		return err
-	}
-    err = os.WriteFile(cr.filepPath, updatedData, 0644)
-	if err != nil {
-		return err
-	}
-    return nil
-}

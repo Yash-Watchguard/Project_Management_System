@@ -2,110 +2,139 @@
 package repository
 
 import (
-	"encoding/json"
+	"database/sql"
 	"errors"
-	"os"
-
+    "time"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
 )
 
 type ProjectRepo struct {
-	filePath string
+	db *sql.DB
 }
 
-func NewProjectRepo() *ProjectRepo {
-	return &ProjectRepo{filePath:  "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/project.json"}
+func NewProjectRepo(db *sql.DB) *ProjectRepo {
+	return &ProjectRepo{db: db}
 }
 
 func (pr *ProjectRepo) AddProject(newProject project.Project) error {
-	var projects []project.Project
+	query:=`INSERT INTO projects (project_id, project_name, project_description, deadline, created_by, assigned_manager_id) VALUES (?, ?, ?, ?, ?, ?)`
 
-	data, err := os.ReadFile(pr.filePath)
+	_,err:=pr.db.Exec(query,newProject.ProjectId,newProject.ProjectName,newProject.ProjectDescription,newProject.Deadline,newProject.CreatedBy,newProject.AssignedManager)
 
-	if err == nil {
-		json.Unmarshal(data, &projects)
-	}
-
-	projects = append(projects, newProject)
-
-	newData, err := json.MarshalIndent(projects, "", "  ")
-	if err != nil {
+	if err!=nil{
 		return err
 	}
-
-	err = os.WriteFile(pr.filePath, newData, 0644)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
-	var projects []project.Project
+    var projects []project.Project
 
-	data, err := os.ReadFile(pr.filePath)
-	if err != nil {
-		return nil, err
-	}
-     
-	err = json.Unmarshal(data, &projects)
-	if err != nil {
-		return nil, err
-	}
+    query := `SELECT project_id, project_name, project_description, deadline, created_by, assigned_manager_id FROM projects`
 
-	return projects, nil
+    rows, err := pr.db.Query(query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+		var p project.Project
+    var deadlineBytes []byte
+
+    err := rows.Scan(&p.ProjectId, &p.ProjectName, &p.ProjectDescription, &deadlineBytes, &p.CreatedBy, &p.AssignedManager)
+    if err != nil {
+        return nil, err
+    }
+
+    // Parse the date string
+    if len(deadlineBytes) > 0 {
+        p.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes)) // if DATE type
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    projects = append(projects, p)
 }
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return projects, nil
+}
+
 func (pr *ProjectRepo) DeleteProject(projectID string) error {
-	data, err := os.ReadFile(pr.filePath)
-	if err != nil {
-		return err
-	}
+    // Check if the project exists first
+    var exists bool
+    checkQuery := `SELECT EXISTS(SELECT 1 FROM projects WHERE project_id = ?)`
+    err := pr.db.QueryRow(checkQuery, projectID).Scan(&exists)
+    if err != nil {
+        return err
+    }
 
-	var projects []project.Project
+    if !exists {
+        return errors.New("project not found")
+    }
 
-	var newProjects []project.Project
-	found := false
-    _=json.Unmarshal(data,&projects)
-	for _, project := range projects {
-		if project.ProjectId == projectID {
-			found = true
-			continue
-		}
-		newProjects = append(newProjects, project)
-	}
-    if !found {
-		return errors.New("project not found")
-	}
-	updatedData, err := json.MarshalIndent(newProjects, "", "  ")
-	if err != nil {
-		return err
-	}
+    // Delete the project
+    deleteQuery := `DELETE FROM projects WHERE project_id = ?`
+    result, err := pr.db.Exec(deleteQuery, projectID)
+    if err != nil {
+        return err
+    }
 
-	return os.WriteFile(pr.filePath,updatedData,0644)
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+
+    if rowsAffected == 0 {
+        return errors.New("no project deleted")
+    }
+
+    return nil
 }
 
-func(pr *ProjectRepo)ViewAssignedProject(userId string)([]project.Project,error){
-   var projects []project.Project
 
-	data, err := os.ReadFile(pr.filePath)
-	if err != nil {
-		return nil, err
-	}
-    
-	var assignedProjects []project.Project
-	err = json.Unmarshal(data, &projects)
-	if err != nil {
-		return nil, errors.New("error in getting projects")
-	}
-	for _,pro:=range projects{
-		if pro.AssignedManager==userId{
-			assignedProjects=append(assignedProjects, pro)
-		}
-	}
-	
-	return assignedProjects,nil
+func (pr *ProjectRepo) ViewAssignedProject(userId string) ([]project.Project, error) {
+    var assignedProjects []project.Project
+
+    query := `SELECT project_id, project_name, project_description, deadline, created_by, assigned_manager_id 
+              FROM projects 
+              WHERE assigned_manager_id = ?`
+
+    rows, err := pr.db.Query(query, userId)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+    var p project.Project
+    var deadlineBytes []byte
+
+    err := rows.Scan(&p.ProjectId, &p.ProjectName, &p.ProjectDescription, &deadlineBytes, &p.CreatedBy, &p.AssignedManager)
+    if err != nil {
+        return nil, err
+    }
+
+    // Parse the date string
+    if len(deadlineBytes) > 0 {
+        p.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes)) // if DATE type
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    assignedProjects = append(assignedProjects, p)
 }
+
+
+    return assignedProjects, nil
+}
+
 
 
 

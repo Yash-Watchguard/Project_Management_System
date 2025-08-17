@@ -5,10 +5,10 @@ import "github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 
 
 type User struct {
-	Id          string `json:"id"`
-	Role        roles.Role `json:"role"`
-	Name        string `json:"name"`
-	Password    string `json:"password"`
-	PhoneNumber string `json:"phonenumber"`
-	Email       string `json:"email"`
+    Id          string     `json:"id" db:"id"`            
+    Role        roles.Role `json:"role" db:"role"`         
+    Name        string     `json:"name" db:"name"`
+    Password    string     `json:"password" db:"password"`
+    PhoneNumber string     `json:"phonenumber" db:"phone_number"`
+    Email       string     `json:"email" db:"email"`
 }

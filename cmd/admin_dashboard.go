@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
+    "bufio"
+	"strconv"
 
 	"github.com/Yash-Watchguard/Tasknest/handler"
 	"github.com/Yash-Watchguard/Tasknest/internal/constants"
-	"strconv"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
-	
+
 	"github.com/fatih/color"
 )
-
+var inputReader *bufio.Reader
 func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.UserHandler,taskHandler *handler.TaskHandler,projectHandler *handler.ProjectHandler,commentHandler *handler.CommentHandler) {
 	for {
 		color.Blue(constants.AdminDashbEntry)
@@ -25,7 +26,7 @@ func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.Us
 		// color.Blue("7. Delete Project")
 		color.Blue("6. Logout")
 
-	    choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+	    choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {
@@ -42,17 +43,20 @@ func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.Us
 			if err != nil {
 				color.Red("%v", err)
 			}
+			handler.Pause()
 
 		case 3:
 			err :=userHandler.DeleteUser(ctx)
 			if err != nil {
 				color.Red("Error: %v", err)
 			}
+			handler.Pause()
 		case 4:
 			err := userHandler.PromoteEmployee(ctx)
 			if err != nil {
 				color.Red("Error: %v", err)
 			}
+			handler.Pause()
 		case 5:
 			 projectMenu(ctx, projectHandler, taskHandler, commentHandler)
 
@@ -72,7 +76,7 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
         color.Blue("3. Delete Project")
         color.Blue("4. Back")
 
-        choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+        choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
 
         switch choice {
@@ -81,6 +85,7 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
 			if err != nil {
 			 		color.Red("%v", err)
 			 	}
+				handler.Pause()
 
         case 2:
             projectId, err := projectHandler.SelectAndReturnProjectId(ctx)
@@ -89,12 +94,14 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
             }
             taskMenu(ctx, taskHandler, commentHandler, projectId)
 
+            handler.Pause()
+
         case 3:
             err:= projectHandler.DeleteProject(ctx)
 			if err != nil {
 			 		color.Red("%v", err)
 			 	}
-
+				handler.Pause()
         case 4:
             return
 
@@ -106,9 +113,12 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
 
 func taskMenu(ctx context.Context, taskHandler *handler.TaskHandler, commentHandler *handler.CommentHandler, projectId string) {
     err := taskHandler.ViewAllTask(ctx, projectId)
-    if err != nil { return }
+    if err != nil { 
+		color.Red("%s",err)
+		return
+	}
 
-    taskId, err := handler.GetInput("Enter Task ID (or press Enter to go back): ")
+    taskId, err := handler.GetInput("Enter Task ID (or press Enter to go back) : ")
     if err != nil || taskId == "" {
         return
     }
@@ -123,7 +133,7 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
         color.Cyan("4. Delete Comment")
         color.Cyan("5. Back")
 
-       choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+       choiceStr, _ := handler.GetInput("\nEnter your choice : ")
     choice, _ := strconv.Atoi(choiceStr)
 
         switch choice {
@@ -131,6 +141,7 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
             err:=commentHandler.ViewAllComment(ctx, taskId)
 			if err!=nil{
 				color.Red("%s",err)
+				handler.Pause()
 			}
         case 2:
             err:= commentHandler.AddNewComment(ctx, taskId)
@@ -138,7 +149,10 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
 				color.Red("%s",err)
 			}
         case 3:
-            _ = commentHandler.UpdateComment(ctx, taskId)
+            err := commentHandler.UpdateComment(ctx, taskId)
+			if err!=nil{
+				color.Red("%s",err)
+			}
         case 4:
             _ = commentHandler.DeleteComment(ctx, taskId)
         case 5:

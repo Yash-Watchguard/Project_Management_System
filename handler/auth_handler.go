@@ -1,19 +1,16 @@
 package handler
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"os"
 	"strings"
+	"syscall"
 
-	
+	"golang.org/x/term"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-	
+
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 
-	
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
 	"github.com/fatih/color"
 	"golang.org/x/crypto/bcrypt"
@@ -21,12 +18,12 @@ import (
 var GenerateUUID = util.GenerateUniqueUUID
 var ValidEmail = util.ValidateEmail
 var ValidPhoneNumber = util.ValidateMobileNumber
-var inputReader *bufio.Reader = bufio.NewReader(os.Stdin)
+// var inputReader *bufio.Reader = bufio.NewReader(os.Stdin)
 var TimeParser = util.ParseDate
 
-func SetInputReader(r io.Reader) {
-	inputReader = bufio.NewReader(r)
-}
+// func SetInputReader(r io.Reader) {
+// 	inputReader = bufio.NewReader(r)
+// }
 
 type authHandler struct{
 	userService *service1.AuthService
@@ -58,7 +55,7 @@ func(au *authHandler)Signup() error {
 	for {
 		password, err = GetValidPassword()
 		if err != nil {
-			color.Red("Please Enter Valid password : ")
+			color.Red("%v (Abccgg@#12345)",err)
 			continue
 		} else {
 			break
@@ -76,31 +73,7 @@ func(au *authHandler)Signup() error {
 		}
 
 	}
-	// var userRole roles.Role
-	// for {
-	// 	color.Magenta("Please Enter Your Role")
-	// 	color.Blue("Press 1 for Admin")
-	// 	color.Blue("Press 2 for Manager")
-	// 	color.Blue("Press 3 for Employee")
-
-	// 	var choice int
-		
-	// 	fmt.Scanln(&choice)
-
-	// 	switch choice {
-	// 	case 1:
-	// 		userRole = roles.Admin
-	// 	case 2:
-	// 		userRole = roles.Manager
-	// 	case 3:
-	// 		userRole = roles.Employee
-	// 	default:
-	// 		color.Red("Enter Valid Choice")
-	// 		continue
-	// 	}
-	// 	break
-	// }
-
+	
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -114,9 +87,6 @@ func(au *authHandler)Signup() error {
 		PhoneNumber: phoneNumber,
 		Role:        2,
 	}
-
-	
-	// authService := service.NewAuthService(repo)
 
 	if err := au.userService.Signup(&user); err != nil {
 		color.Red("Signup failed: %v", err)
@@ -136,11 +106,6 @@ func GetInput(prompt string) (string, error) {
 	return strings.TrimSpace(input), nil
 }
 
-// Pause waits for user to press Enter
-func Pause() {
-	fmt.Print(color.BlueString("Press Enter to go back..."))
-	reader.ReadString('\n') // ignore error intentionally
-}
 
 func GetValidEmail() (string, error) {
 	email, err := GetInput("Enter Email : ")
@@ -167,14 +132,21 @@ func GetValidPhoneNumber() (string, error) {
 }
 
 func GetValidPassword() (string, error) {
-	password, err := GetInput("Enter Password: ")
+	fmt.Print(color.RedString("Enter Password : "))
+
+	
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Println() 
 	if err != nil {
 		return "", err
 	}
-	if err := util.ValidatePassword(password); err != nil {
 
+	password := string(bytePassword)
+
+	if err := util.ValidatePassword(password); err != nil {
 		return "", err
 	}
+
 	return password, nil
 }
 
@@ -207,16 +179,3 @@ func(au * authHandler)Login() (*user.User,error) {
 	// 
 	return user,err
 }
-
-
-
-// func DashBoard(user *model.User) {
-// 	if user.Role == "Admin" {
-// 		AdminDashboard(user)
-// 	} else if user.Role == "Manager" {
-// 		//    ManagerDashboard(user)
-// 	} else {
-// 		//    EmployeeDashboard(user)
-// 	}
-
-// 

@@ -1,23 +1,22 @@
 package main
 
 import (
-	// "fmt"
+	
 
 	"log"
 
 	"context"
-	// "errors"
+	
 	"fmt"
 
 	"github.com/Yash-Watchguard/Tasknest/handler"
 	"github.com/Yash-Watchguard/Tasknest/internal/constants"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+	"github.com/Yash-Watchguard/Tasknest/internal/config"
 	"github.com/fatih/color"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/comment"
+	
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/project"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/roles"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/user"
+	
 	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	
 )
@@ -29,19 +28,28 @@ func main() {
 	}
 }
 func RunApp() error {
+	db,err:=config.GetDbInstance()
+	if err!=nil{
+		log.Fatal(err)
+	}
+
+	defer func() {
+		db.Close()
+	}()
+
 	var ctx context.Context
-	userRepo := repository.NewUserRepo()
-	projectRepo := repository.NewProjectRepo()
+	userRepo := repository.NewUserRepo(db)
+	projectRepo := repository.NewProjectRepo(db)
 	
-	taskRepo := repository.NewTaskRepo()
-	commentRepo := repository.NewCommentRepo()
+	taskRepo := repository.NewTaskRepo(db)
+	commentRepo := repository.NewCommentRepo(db)
 	
-	empRepo:=repository.NewEmployeeRepo()
+	
 
 	authService:=service1.NewAuthService(userRepo)
     commentService:=service1.NewCommentService(commentRepo)
 	projectService:=service1.NewProjectService(projectRepo)
-	taskService:=service1.NewTaskService(taskRepo,empRepo)
+	taskService:=service1.NewTaskService(taskRepo)
 	userService:=service1.NewUserService(userRepo)
 
     authHandler:=handler.NewAuthHandler(authService)
@@ -50,6 +58,7 @@ func RunApp() error {
 	taskHandler:=handler.NewTaskHandler(taskService)
 	commentHandler:=handler.NewCommentHandler(commentService,userService)
 
+	
 	for {
 		color.Red(constants.WelcomeMSG)
 		color.Blue(constants.SignupChoice)

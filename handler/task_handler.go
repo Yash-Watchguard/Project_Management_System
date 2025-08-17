@@ -40,16 +40,17 @@ func (th *TaskHandler) ViewAllTask(ctx context.Context, projectId string) error 
 
 	// If no tasks exist
 	if len(tasks) == 0 {
-		color.Yellow("No tasks found for this project.")
-		return nil
+		
+		return errors.New("no task found for this project")
 	}
 
 	// Display all tasks
 	for i, task := range tasks {
 		color.Cyan("------------ Task %d ------------", i+1)
 		color.Cyan("Task ID        : %v", task.TaskId)
-		color.Cyan("Title          : %v", task.Tile)
+		color.Cyan("Title          : %v", task.Title)
 		color.Cyan("Description    : %v", task.Description)
+color.Cyan("Acceptance_Criteria    :%v",task.AcceptanceCriteria)
 		color.Cyan("Priority       : %v", task.TaskPriority)
 		color.Cyan("Assigned To    : %v", task.AssignedTo)
 		color.Cyan("Status         : %v", task.TaskStatus)
@@ -63,26 +64,31 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 	managerId := ctx.Value(ContextKey.UserId).(string)
 	taskId := GenerateUUID()
 
-	title, err := GetInput("Enter Task Title: ")
+	title, err := GetInput("Enter Task Title : ")
 	if err != nil {
 		return err
 	}
 
-	description, err := GetInput("Enter Task Description: ")
+	description, err := GetInput("Enter Task Description : ")
+	if err != nil {
+		return err
+	}
+
+	acceptanceCriteria, err := GetInput("Enter Task Acceptance Criteria : ")
 	if err != nil {
 		return err
 	}
 
 	var deadline time.Time
 	for {
-		deadlineStr, err := GetInput("Enter Deadline in YYYY-MM-DD: ")
+		deadlineStr, err := GetInput("Enter Deadline in YYYY-MM-DD : ")
 		if err != nil {
 			return err
 		}
-
+      
 		deadline, err = TimeParser(deadlineStr)
 		if err != nil {
-			color.Red("Invalid date format")
+			color.Red("%v",err)
 		} else {
 			break
 		}
@@ -90,7 +96,7 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 
 	var priority Priority.Priority
 	for {
-		priorityStr, err := GetInput("Enter Priority => Low/Medium/High: ")
+		priorityStr, err := GetInput("Enter Priority => Low/Medium/High : ")
 		if err != nil {
 			return err
 		}
@@ -103,21 +109,22 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 		}
 	}
 
-	assignedTo, err := GetInput("Enter Employee ID to assign this task to: ")
+	assignedTo, err := GetInput("Enter Employee ID to assign this task to : ")
 	if err != nil {
 		return err
 	}
 
 	newTask := task.Task{
 		TaskId:       taskId,
-		Tile:         title,
+		Title:         title,
 		Description:  description,
+		AcceptanceCriteria: acceptanceCriteria,
 		Deadline:     deadline,
 		TaskPriority: priority,
 		TaskStatus:   status.Pending,
 		AssignedTo:   assignedTo,
 		ProjectId:    projectId,
-		CreatesBy:    managerId,
+		CreatedBy:    managerId,
 	}
 
 	// Call service method
@@ -127,8 +134,7 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 
 	color.Green("Task created successfully!")
 
-	color.Blue("Press Enter to go back...")
-	fmt.Scanln()
+	Pause()
 	return nil
 }
 func (th *TaskHandler) DeleteTask(ctx context.Context, projectId string) error {
@@ -146,7 +152,7 @@ func (th *TaskHandler) DeleteTask(ctx context.Context, projectId string) error {
 
 	// Display tasks
 	for i, task := range projectTasks {
-		color.Yellow("%d. Name: %s  ID: %s", i+1, task.Tile, task.TaskId)
+		color.Yellow("%d. Name: %s  ID: %s", i+1, task.Title, task.TaskId)
 	}
 
 	// Get task ID to delete
@@ -162,8 +168,7 @@ func (th *TaskHandler) DeleteTask(ctx context.Context, projectId string) error {
 
 	color.Green("Task deleted successfully!")
 
-	color.Blue("Press Enter to go back...")
-	fmt.Scanln()
+	Pause()
 	return nil
 }
 func (th *TaskHandler) GetAssignedTask(ctx context.Context, userId string) error {
@@ -180,11 +185,11 @@ func (th *TaskHandler) GetAssignedTask(ctx context.Context, userId string) error
     for i, task := range tasks {
         color.Cyan("------------ Task %d ------------", i+1)
         color.Cyan("Task ID       : %v", task.TaskId)
-        color.Cyan("Title         : %v", task.Tile)
+        color.Cyan("Title         : %v", task.Title)
         color.Cyan("Description   : %v", task.Description)
         color.Cyan("Priority      : %v", task.TaskPriority)
         color.Cyan("Status        : %v", task.TaskStatus)
-        color.Cyan("Created By    : %v", task.CreatesBy)
+        color.Cyan("Created By    : %v", task.CreatedBy)
         color.Cyan("Deadline      : %v", task.Deadline.Format("2006-01-02 15:04:05"))
         fmt.Println()
     }
@@ -205,8 +210,7 @@ updatedStatus,err:=GetInput("Enter Updated status (pending/in progress/done) : "
 	return err
    }
    color.Green("Task Status Updated Successfully")
-   color.Blue("press enter to going back")
-   fmt.Scanln()
+  Pause()
    return nil
 } 
 

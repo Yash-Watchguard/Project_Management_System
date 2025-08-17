@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-    "strconv"
-	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
-	
-	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
-	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
-	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
-	
-	// "github.com/Yash-Watchguard/Tasknest/internal/service1"
-	"github.com/fatih/color"
-)
+	"strconv"
+	"time"
 
-import "github.com/Yash-Watchguard/Tasknest/internal/service1"
+	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+
+	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+
+	// "github.com/Yash-Watchguard/Tasknest/internal/service1"
+	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+	"github.com/fatih/color"
+	
+)
 
 type ProjectHandler struct {
 	userService service1.UserService
@@ -38,15 +40,33 @@ createdBy := ctx.Value(ContextKey.UserId).(string)
 	if err != nil {
 		return err
 	}
-	deadline, _ := GetInput("Enter deadline (YYYY-MM-DD) :")
-	actualdeadline, err := TimeParser(deadline)
-	if err != nil {
-		return err
+	// deadline, _ := GetInput("Enter deadline (YYYY-MM-DD) :")
+	// actualdeadline, err := TimeParser(deadline)
+	// if err != nil {
+	// 	return err
+	// }
+	var actualdeadline time.Time
+    for {
+		deadline, _ := GetInput("Enter deadline (YYYY-MM-DD) :")
+	    actualdeadline, err = TimeParser(deadline)
+	    if err != nil {
+		color.Red("%v",err)
+		continue
+	   }
+	   break
 	}
+	managers,err := ph.userService.GetAllManager(ctx)
+	if len(managers)==0{
+		return errors.New("no manager found")
+	}
+	if err != nil  {
+		return errors.New("project add faild")
+	}
+
 	color.Blue("select Manager from Given list 👇")
-	err = ph.userService.GetAllManager(ctx)
-	if err != nil {
-		return errors.New("project Add Faild")
+	c:=1
+	for _,man:= range managers{
+     color.Yellow("%d . ID : %s , Name : %s",c,man.Id,man.Name)
 	}
 	var managerId string
 	color.Blue("Enter Manager Id:")
@@ -65,8 +85,7 @@ createdBy := ctx.Value(ContextKey.UserId).(string)
 	} else {
 		color.Green("✅ Project added successfully!")
 	}
-	fmt.Println("Press ENTER to return to dashboard...")
-	fmt.Scanln()
+	
 	return nil
 }
 
@@ -149,8 +168,7 @@ func (ph *ProjectHandler) DeleteProject(ctx context.Context) error {
 	}
 
 	color.Green("✅ Project deleted successfully!")
-	color.Blue("Press Enter to go back...")
-	fmt.Scanln()
+	Pause()
 
 	return nil
 }
@@ -176,8 +194,6 @@ func (ph *ProjectHandler) ViewAssignedProjects(ctx context.Context, user *user.U
 		color.Yellow("Created By     : %s", project.CreatedBy)
 		color.Cyan("----------------------------------")
 	}
-	fmt.Println()
-	
 
 	return nil
 }
@@ -210,78 +226,3 @@ func (ph *ProjectHandler) ShowProjectStatus(ctx context.Context, projectId strin
 	return nil
 }
 
-
-
-// func viewTaskofProject(ph *ProjectHandler, ctx context.Context, projectId string) error {
-// 	tasks, err := .ViewAllTask(ctx, projectId)
-// 	if err != nil {
-// 		color.Red(" Failed to fetch tasks: %v", err)
-// 		return err
-// 	}
-
-// 	if len(tasks) == 0 {
-// 		color.Yellow("No tasks found for this project.")
-// 		return nil
-// 	}
-
-// 	for i, task := range tasks {
-// 		color.Cyan("------------ Task %d ------------", i+1)
-// 		color.Cyan("Task ID        : %v", task.TaskId)
-// 		color.Cyan("Titel          : %v", task.Tile)
-// 		color.Cyan("Description    : %v", task.Description)
-// 		color.Cyan("Task Priority  : %v", task.TaskPriority)
-// 		color.Cyan("Assigned To    : %v", task.AssignedTo)
-// 		color.Cyan("Status         : %v", task.TaskStatus)
-// 		color.Cyan("Deadline       : %v", task.Deadline)
-
-// 		fmt.Println()
-// 	}
-
-// 	color.Blue("1.Enter task Id for add/edit/delete/view a comment on a specific task")
-// 	color.Blue("2.Enter to go back")
-// 	taskId, err := GetInput("")
-
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	if taskId == "" {
-// 		return nil
-// 	}
-// 	for {
-// 		color.Cyan("1.View All Comments")
-// 		color.Cyan("2.Add Comment")
-// 		color.Cyan("3.Update Comment")
-// 		color.Cyan("4.Delete Comment")
-// 		color.Cyan("5.Return Back")
-// 		var choice int
-// 		fmt.Println(color.BlueString("Enter choice:"))
-// 		fmt.Scan(&choice)
-
-// 		switch choice {
-// 		case 1:
-// 			err := viewAllComment(ad, taskId)
-// 			if err != nil {
-// 				color.Red("%v", err)
-// 			}
-// 		case 2:
-// 			err := addComment(ad, ctx)
-// 			if err != nil {
-// 				color.Red("%v", err)
-// 			}
-// 		case 3:
-// 			err := updateComment(ad, ctx)
-// 			if err != nil {
-// 				color.Red("%v", err)
-// 			}
-// 		case 4:
-// 			err := deleteCommnt(ad, ctx)
-// 			if err != nil {
-// 				color.Red("%v", err)
-// 			}
-// 		case 5:
-// 			return nil
-// 		default:
-// 			color.Red("Enter Valid choice")
-// 		}
-// 	}
-// }

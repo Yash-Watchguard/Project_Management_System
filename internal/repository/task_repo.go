@@ -1,178 +1,177 @@
 package repository
 
 import (
-	"encoding/json"
+	"database/sql"
 	"errors"
-	"os"
-
+    "time"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
-	status"github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
 )
 
 type TaskRepo struct {
-	filepath string
+	db *sql.DB
 }
 
-func NewTaskRepo() *TaskRepo {
-	return &TaskRepo{filepath: "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/task.json"}
+func NewTaskRepo(db *sql.DB) *TaskRepo {
+	return &TaskRepo{db: db}
 }
 
 func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
-	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil {
-		return nil, err
-	}
-     if len(data) == 0 {
-    return []task.Task{}, nil
+    query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby
+              FROM tasks WHERE projectid = ?`
+
+    rows, err := taskRepo.db.Query(query, projectId)
+    if err != nil {
+        return nil, err
     }
-	var allTasks []task.Task
-	err = json.Unmarshal(data, &allTasks)
-	if err != nil {
-		return nil, err
-	}
+    defer rows.Close()
 
-	var projectTasks []task.Task
-	for _, t := range allTasks {
-		if t.ProjectId == projectId {
-			projectTasks = append(projectTasks, t)
+    var projectTasks []task.Task
+    for rows.Next() {
+        var t task.Task
+		var deadlineBytes []byte
+        err := rows.Scan(
+            &t.TaskId,
+            &t.Title,
+            &t.Description,
+            &t.AcceptanceCriteria,
+            &deadlineBytes,
+            &t.TaskPriority,
+            &t.TaskStatus,
+            &t.AssignedTo,
+            &t.ProjectId,
+            &t.CreatedBy,
+        )
+        if err != nil {
+            return nil, err
+        }
+		if len(deadlineBytes)>0{
+			 t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes)) 
+        if err != nil {
+            return nil, err
+        }
 		}
-	}
+        projectTasks = append(projectTasks, t)
+    }
 
-	return projectTasks, nil
+    return projectTasks, nil
 }
+
 func (taskRepo *TaskRepo) SaveTask(newTask task.Task) error {
-	var tasks []task.Task
+    query := `INSERT INTO tasks 
+        (task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
+    _, err := taskRepo.db.Exec(
+        query,
+        newTask.TaskId,
+        newTask.Title,
+        newTask.Description,
+        newTask.AcceptanceCriteria,
+        newTask.Deadline,
+        newTask.TaskPriority,
+        newTask.TaskStatus,
+        newTask.AssignedTo,
+        newTask.ProjectId,
+        newTask.CreatedBy,
+    )
 
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &tasks)
-		if err != nil {
-			return err
-		}
-	} else {
-		tasks = []task.Task{} 
-	}
+    if err != nil {
+        return err
+    }
 
-	tasks = append(tasks, newTask)
-
-	newData, err := json.MarshalIndent(tasks, "", "  ")
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile(taskRepo.filepath, newData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+    return nil
 }
+
 
 
 func (taskRepo *TaskRepo) DeleteTask(taskId string) error {
-	var tasks []task.Task
-
-	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, &tasks)
-	if err != nil {
-		return err
-	}
-
-
-	found := false
-	var updatedTasks []task.Task
-	for _, t := range tasks {
-		if t.TaskId == taskId {
-			found = true
-			continue 
-		}
-		updatedTasks = append(updatedTasks, t)
-	}
-
-	if !found {
-		return errors.New("task not found")
-	}
-
-	newData, err := json.MarshalIndent(updatedTasks, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(taskRepo.filepath, newData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
-	var tasks []task.Task
-	var assignedTasks []task.Task
-
-	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &tasks)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for _, task := range tasks {
-		if task.AssignedTo == empId {
-			assignedTasks = append(assignedTasks, task)
-		}
-	}
-
-	return assignedTasks, nil
-}
-func (taskRepo *TaskRepo) UpdateTaskStatus(empId string, taskId string, updatedStatus status.TaskStatus) error {
-	var tasks []task.Task
-	data, err := os.ReadFile(taskRepo.filepath)
-	if err != nil {
-		return err
-	}
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &tasks)
-		if err != nil {
-			return err
-		}
-	}
-
-	updated := false
-    for i := range tasks {
-	if tasks[i].TaskId == taskId && tasks[i].AssignedTo == empId {
-		tasks[i].TaskStatus = updatedStatus
-		updated = true
-		break
-	}
+    //Check  task exists
+    var exists bool
+    checkQuery := `SELECT EXISTS(SELECT 1 FROM tasks WHERE task_id = ?)`
+    err := taskRepo.db.QueryRow(checkQuery, taskId).Scan(&exists)
+    if err != nil {
+        return err
+    }
+    if !exists {
+        return errors.New("task not found")
+    }
+    deleteQuery := `DELETE FROM tasks WHERE task_id = ?`
+    _, err = taskRepo.db.Exec(deleteQuery, taskId)
+    if err != nil {
+        return err
     }
 
-
-	if !updated {
-		return errors.New("task not assigned to employee")
-	}
-
-	newData, err := json.MarshalIndent(tasks, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(taskRepo.filepath, newData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+    return nil
 }
+
+func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
+    var assignedTasks []task.Task
+
+    query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby 
+              FROM tasks 
+              WHERE assignesto = ?`
+
+    rows, err := taskRepo.db.Query(query, empId)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var t task.Task
+		var deadlineBytes []byte
+        err := rows.Scan(
+            &t.TaskId,
+            &t.Title,
+            &t.Description,
+            &t.AcceptanceCriteria,
+            &deadlineBytes,
+            &t.TaskPriority,
+            &t.TaskStatus,
+            &t.AssignedTo,
+            &t.ProjectId,
+            &t.CreatedBy,
+        )
+        if err != nil {
+            return nil, err
+        }
+		if len(deadlineBytes) > 0 {
+        t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes)) // if DATE type
+        if err != nil {
+            return nil, err
+        }
+    }
+        assignedTasks = append(assignedTasks, t)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return assignedTasks, nil
+}
+
+func (taskRepo *TaskRepo) UpdateTaskStatus(empId string, taskId string, updatedStatus status.TaskStatus) error {
+    query := `UPDATE tasks 
+              SET taskstatus = ? 
+              WHERE task_id = ? AND assignesto = ?`
+
+    res, err := taskRepo.db.Exec(query, updatedStatus, taskId, empId)
+    if err != nil {
+        return err
+    }
+
+    rowsAffected, err := res.RowsAffected()
+    if err != nil {
+        return err
+    }
+
+    if rowsAffected == 0 {
+        return errors.New("task not assigned to employee or task does not exist")
+    }
+
+    return nil
+}
+
 

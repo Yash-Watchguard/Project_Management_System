@@ -9,7 +9,7 @@ import (
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
-	"github.com/fatih/color"
+	
 )
 type UserService struct{
 	userRepo    interfaces.UserRepository
@@ -45,7 +45,7 @@ func (u * UserService) DeleteUser(ctx context.Context, userId string) error {
 	if userId == userID || userRole == 0 {
 		err := u.userRepo.DeleteUserById(userId)
 		if err != nil {
-			color.Red("%v", err)
+			return err
 		}
 	} else {
 		return errors.New("unauthorized access")
@@ -53,22 +53,24 @@ func (u * UserService) DeleteUser(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (u *UserService) GetAllManager(ctx context.Context) error {
+func (u *UserService) GetAllManager(ctx context.Context) ([]user.User,error) {
 	userId := ctx.Value(ContextKey.UserRole).(roles.Role)
 	if userId != 0 {
-		return errors.New("unautherized access")
+		return nil,errors.New("unautherized access")
 	}
 	return u.userRepo.GetAllManager()
 }
 
-func (u * UserService) UpdateProfile(userId string, ctx context.Context, name string, email string, password string, number string) error {
-	userID := ctx.Value(ContextKey.UserId).(string)
+func (u *UserService) UpdateProfile(userId string, ctx context.Context,field string,updatedData string) error {
+    userID := ctx.Value(ContextKey.UserId).(string)
+    if userID != userId {
+        return errors.New("unauthorized access")
+    }
 
-	if userID != userId {
-		return errors.New("unauthorized access")
-	}
-	return u.userRepo.UpdateProfile(userId, name, email, password, number)
+    return u.userRepo.UpdateProfile(userID,field,updatedData)
+    
 }
+
 
 func (u * UserService) PromoteEmployee(ctx context.Context, employeeId string) error {
 	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)

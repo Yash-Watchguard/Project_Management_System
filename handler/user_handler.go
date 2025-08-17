@@ -4,27 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
-	
-	// "github.com/Yash-Watchguard/Tasknest/internal/constants"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/comment"
-	// ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
-	// "github.com/Yash-Watchguard/Tasknest/internal/model/project"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
 	"github.com/fatih/color"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserHandler struct {
 	userService *service1.UserService
 }
 
-func NewUserHandler(userService *service1.UserService)*UserHandler{
+func NewUserHandler(userService *service1.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-func(uh *UserHandler)ViewUserProfile( ctx context.Context, admin *user.User) (bool, error) {
+func (uh *UserHandler) ViewUserProfile(ctx context.Context, admin *user.User) (bool, error) {
 	userProfiles, err := uh.userService.ViewProfile(ctx, admin.Id)
 	if err != nil {
 		return false, err
@@ -40,19 +37,19 @@ func(uh *UserHandler)ViewUserProfile( ctx context.Context, admin *user.User) (bo
 	color.Yellow("Name         : %s", user.Name)
 	color.Yellow("Email        : %s", user.Email)
 	color.Yellow("Phone Number : %s", user.PhoneNumber)
-	color.Yellow("Role         : %v", user.Role)
+	color.Yellow("Role         : %v", roles.RoleParser(user.Role))
 	color.Cyan("----------------------------------")
 
 	color.Blue("1. Update Profile")
 	color.Blue("2. Delete Profile")
 	color.Blue("3. Go Back")
-    color.Green("Enter your Choice : ")
+	color.Green("Enter your Choice : ")
 	var choice int
 	fmt.Scanln(&choice)
 
 	switch choice {
 	case 1:
-		err :=updateProfile(uh, ctx, &user)
+		err := updateProfile(uh, ctx, &user)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 		}
@@ -78,23 +75,29 @@ func(uh *UserHandler)ViewUserProfile( ctx context.Context, admin *user.User) (bo
 
 func updateProfile(uh *UserHandler, ctx context.Context, user *user.User) error {
 	for {
+
 		color.Blue("1. Update Name")
 		color.Blue("2. Update Email")
 		color.Blue("3. Update Password")
 		color.Blue("4. Update Contact")
 		color.Blue("5. Go Back")
 
-		var choice int
-		fmt.Scanln(&choice)
-
+		choicestr, _ := GetInput("Enter your choice")
+		choice, _ := strconv.Atoi(choicestr)
 		switch choice {
 		case 1:
-			name, err := GetInput("Enter Name: ")
+			updatedname, err := GetInput("Enter Name: ")
 			if err != nil {
 				color.Red("Error reading name: %v", err)
 				continue
 			}
-			user.Name = name
+			err = uh.userService.UpdateProfile(user.Id, ctx, "name", updatedname)
+
+			if err != nil {
+				color.Red("Update failed: %v", err)
+			} else {
+				color.Green("User updated successfully!")
+			}
 
 		case 2:
 			email, err := GetValidEmail()
@@ -102,7 +105,13 @@ func updateProfile(uh *UserHandler, ctx context.Context, user *user.User) error 
 				color.Red("Invalid email: %v", err)
 				continue
 			}
-			user.Email = email
+			err = uh.userService.UpdateProfile(user.Id, ctx, "email", email)
+
+			if err != nil {
+				color.Red("Update failed: %v", err)
+			} else {
+				color.Green("User updated successfully!")
+			}
 
 		case 3:
 			password, err := GetValidPassword()
@@ -110,15 +119,26 @@ func updateProfile(uh *UserHandler, ctx context.Context, user *user.User) error 
 				color.Red("Invalid password: %v", err)
 				continue
 			}
-			user.Password = password
-
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			password = string(hashedPassword)
+			err = uh.userService.UpdateProfile(user.Id, ctx, "password", password)
+			if err != nil {
+				color.Red("Update failed: %v", err)
+			} else {
+				color.Green("User updated successfully!")
+			}
 		case 4:
 			contact, err := GetValidPhoneNumber()
 			if err != nil {
 				color.Red("Invalid phone number: %v", err)
 				continue
 			}
-			user.PhoneNumber = contact
+			err = uh.userService.UpdateProfile(user.Id, ctx, "phone_number", contact)
+			if err != nil {
+				color.Red("Update failed: %v", err)
+			} else {
+				color.Green("User updated successfully!")
+			}
 
 		case 5:
 			return nil
@@ -128,18 +148,11 @@ func updateProfile(uh *UserHandler, ctx context.Context, user *user.User) error 
 			continue
 		}
 
-		err := uh.userService.UpdateProfile(user.Id, ctx, user.Name, user.Email, user.Password, user.PhoneNumber)
-		if err != nil {
-			color.Red("Update failed: %v", err)
-		} else {
-			color.Green("User updated successfully!")
-		}
-
 	}
 }
 
-func(uh *UserHandler)ViewallUsers(ctx context.Context)error{
-	users, err :=uh.userService.ViewAllUsers(ctx)
+func (uh *UserHandler) ViewallUsers(ctx context.Context) error {
+	users, err := uh.userService.ViewAllUsers(ctx)
 
 	if err != nil {
 		return nil
@@ -148,24 +161,23 @@ func(uh *UserHandler)ViewallUsers(ctx context.Context)error{
 	color.Cyan("----------------------------- All Users -----------------------------------")
 	counter := 1
 	for _, user := range users {
-		color.Yellow("%d. ID: %s, Name: %s, Email: %s, Role: %d\n", counter, user.Id, user.Name, user.Email, user.Role)
+		color.Yellow("%d. ID: %s, Name: %s, Email: %s, Role: %s\n", counter, user.Id, user.Name, user.Email,roles.RoleParser(user.Role))
 		counter++
 	}
-	fmt.Println("Press ENTER to return to dashboard...")
-	fmt.Scanln()
+
 	return nil
 }
-func(uh *UserHandler)DeleteUser( ctx context.Context) error {
+func (uh *UserHandler) DeleteUser(ctx context.Context) error {
 	users, err := uh.userService.ViewAllUsers(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
-	counter := 0
-	for key, user := range users {
-		if user.Role == 0 || user.Role == 1 {
+	counter := 1
+	for _, user := range users {
+		if user.Role == 0 {
 			continue
 		}
-		color.Blue("---------------------user %v----------------", key+1)
+		color.Blue("---------------------user %v----------------", counter)
 		color.Yellow("Name- %v ", user.Name)
 		color.Yellow("Id - %v", user.Id)
 		color.Yellow("Role- %v", roles.RoleParser(user.Role))
@@ -173,7 +185,7 @@ func(uh *UserHandler)DeleteUser( ctx context.Context) error {
 		counter++
 	}
 	if counter == 0 {
-		return errors.New("no employees for Promotion")
+		return errors.New("no users present")
 	}
 
 	fmt.Println("Enter User Id :")
@@ -188,51 +200,41 @@ func(uh *UserHandler)DeleteUser( ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
+
 	color.Green("User deleted successfully!")
-	fmt.Println("Press ENTER to return to dashboard...")
-	fmt.Scanln()
+
 	return nil
 }
-func(uh *UserHandler)PromoteEmployee(ctx context.Context)error{
+func (uh *UserHandler) PromoteEmployee(ctx context.Context) error {
 	users, err := uh.userService.ViewAllEmplpyee(ctx)
-	if err != nil {
-		return nil
-	}
-	counter := 0
-	for key, user := range users {
-		if user.Role == 0 || user.Role == 1 {
-			continue
-		}
-		color.Blue("---------------------Employee %v----------------", key+1)
-		color.Yellow("Name- %v ", user.Name)
-		color.Yellow("Id - %v", user.Id)
-		color.Yellow("Role- %v", roles.RoleParser(user.Role))
-		color.Blue("--------------------------------------------")
-		counter++
-	}
-	if counter == 0 {
-		return errors.New("no employees for Promotion")
-	}
-
-	employeeId, err := GetInput("Enter Employee Id To promot as Manager")
 	if err != nil {
 		return err
 	}
 
-	err = uh.userService.PromoteEmployee(ctx,employeeId)
+	for key, user := range users {
+		color.Blue("---------------------Employee %v----------------", key)
+		color.Yellow("Name- %v ", user.Name)
+		color.Yellow("Id - %v", user.Id)
+		color.Yellow("Role- %v", roles.RoleParser(user.Role))
+		color.Blue("--------------------------------------------")
+	}
+
+	employeeId, err := GetInput("Enter Employee Id To promot as Manager : ")
+	if err != nil {
+		return err
+	}
+
+	err = uh.userService.PromoteEmployee(ctx, employeeId)
 	if err != nil {
 		return err
 	}
 
 	color.Green("💐 Promoted as Manbager .......")
-	fmt.Println("Press ENTER to return to dashboard...")
-	fmt.Scanln()
 	return nil
 }
 
 func (uh *UserHandler) ViewAllEmployees(ctx context.Context) error {
-	users, err := uh.userService.ViewAllEmplpyee(ctx) 
+	users, err := uh.userService.ViewAllEmplpyee(ctx)
 	if err != nil {
 		color.Red("Error fetching employees: %v", err)
 		return err
@@ -245,11 +247,10 @@ func (uh *UserHandler) ViewAllEmployees(ctx context.Context) error {
 
 	color.Cyan("===== List of Employees =====")
 	for i, user := range users {
-		color.Yellow("%d. ID: %s | Name: %s | Email: %s | Role: %s", i+1, user.Id, user.Name, user.Email, user.Role)
+		color.Yellow("%d. ID: %s | Name: %s | Email: %s | Role: %s", i+1, user.Id, user.Name, user.Email, roles.RoleParser(user.Role))
 	}
 	color.Cyan("=============================")
+
 	
-	fmt.Println("Press ENTER to return to dashboard...")
-	fmt.Scanln()
 	return nil
 }

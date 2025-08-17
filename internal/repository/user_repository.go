@@ -1,287 +1,265 @@
 package repository
 
 import (
-	"encoding/json"
+	"database/sql"
+	"fmt"
+	"strings"
+
+	"github.com/go-sql-driver/mysql"
 
 	"errors"
-	"fmt"
 
-	"os"
-	"sync"
-
+	"github.com/Yash-Watchguard/Tasknest/internal/config"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	userFile = "C:/Users/ygoyal/Desktop/PMS_Project/internal/data/user.json"
-	mu       sync.Mutex
-)
-
-type UserRepo struct{}
-
-func NewUserRepo() *UserRepo {
-	return &UserRepo{}
+type UserRepo struct{
+	db *sql.DB
 }
+
+func NewUserRepo(db *sql.DB) *UserRepo {
+	return &UserRepo{db: db}
+}
+
 
 func (repo *UserRepo) SaveUser(newUser *user.User) error {
-	mu.Lock()
-	defer mu.Unlock()
+    columns := []string{"id", "role", "name", "password", "phone_number", "email"}
+    query := config.InsertQuery("users", columns)
 
-	var users []user.User
+    _, err := repo.db.Exec(query,
+        newUser.Id,
+        newUser.Role,
+        newUser.Name,
+        newUser.Password,
+        newUser.PhoneNumber,
+        newUser.Email,
+    )
 
-	data, err := os.ReadFile(userFile)
-	if err == nil && len(data) > 0 {
-		err := json.Unmarshal(data, &users)
-		if err != nil {
-			fmt.Println(" Error parsing JSON:", err)
-		}
-	}
+    if err != nil {
+        if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+            if strings.Contains(mysqlErr.Message, "phone_number") {
+                return errors.New("phone number already exists")
+            }
+            if strings.Contains(mysqlErr.Message, "email") {
+                return errors.New("email already exists")
+            }
+            return errors.New("duplicate entry")
+        }
+        return err
+    }
 
-	users = append(users, *newUser)
-
-	out, err := json.MarshalIndent(users, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(userFile, out, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+    return nil
 }
+
 
 func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, error) {
-	data, err := os.ReadFile(userFile)
-	if err != nil {
-		return nil, err
-	}
+	
+	row:=repo.db.QueryRow(config.SelectQuery("users",[]string{"id","name","email","password","role","phone_number"},"name","email"),name,email)
 
-	var users []user.User
-	err = json.Unmarshal(data, &users)
-	if err != nil {
-		return nil, err
-	}
+	var user user.User
 
-	for _, u := range users {
-		if u.Name == name && u.Email == email {
-			// compare stored hashed password with plain password
-			err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-			if err == nil {
-				return &u, nil
-			}
+	err:=row.Scan(&user.Id,&user.Name,&user.Email,&user.Password,&user.Role,&user.PhoneNumber)
+
+	if err!=nil{
+		if err==sql.ErrNoRows{
+			return nil,errors.New("no user found")
 		}
+		return nil,err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, errors.New("invalid password")
 	}
 
-	return nil, errors.New("invalid details")
+	return &user,nil
+
 }
 func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
-	data, err := os.ReadFile(userFile)
-	if err != nil {
-		return nil, errors.New("error in readfile")
-	}
+	
+	query := config.SelectQuery("users", []string{"id", "name", "email", "role", "phone_number"}, "id")
 
-	var users []user.User
-	err = json.Unmarshal(data, &users)
-	if err != nil {
-		return nil, errors.New("error in unmarshal")
-	}
+	row := repo.db.QueryRow(query, userId)
 
-	for _, u := range users {
-		if u.Id == userId {
-			return []user.User{u}, nil
+	var u user.User
+	var user []user.User
+	err := row.Scan(&u.Id, &u.Name, &u.Email, &u.Role, &u.PhoneNumber)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
 		}
+		return nil, err
 	}
-	return nil, errors.New("user not found")
+    user = append(user, u)
+	return user, nil
 }
 
-func (ur *UserRepo) GetAllUsers() ([]user.User,error) {
-	data, err := os.ReadFile(userFile)
+
+func (repo *UserRepo) GetAllUsers() ([]user.User, error) {
+	query := `SELECT id, name, email, role, phone_number FROM users`
+	// `SELECT id, name, email, role, phone_number FROM users`
+
+	rows, err := repo.db.Query(query)
 	if err != nil {
-		return []user.User{},err
+		return nil, err
 	}
-    if len(data)==0{
-        return []user.User{},errors.New("no users present")
-	}
+	defer rows.Close()
+
 	var users []user.User
-	err= json.Unmarshal(data, &users)
-	if err!=nil{
-		return users,err
+
+	for rows.Next() {
+		var u user.User
+		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Role, &u.PhoneNumber)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
 	}
 
-	return users,err
+	if len(users) == 0 {
+		return nil, errors.New("no users present")
+	}
+
+	return users, nil
 }
+
 
 func (ur *UserRepo) DeleteUserById(userId string) error {
-	data, err := os.ReadFile(userFile)
+	// Build delete query
+	query := config.DeleteQuery("users", []string{"id"}) // DELETE FROM users WHERE id = ?
 
+	// Execute query
+	result, err := ur.db.Exec(query, userId)
+	if err != nil {
+		return errors.New("please enter valid user id")
+	}
+
+	// Check if any row was actually deleted
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
 
-	var users []user.User
-	err = json.Unmarshal(data, &users)
-	if err != nil {
-		return err
+	if rowsAffected == 0 {
+		return errors.New("please enter valid user id")
 	}
 
-	flag := false
-	newUsers := []user.User{}
-	for _, user := range users {
-		if user.Id != userId {
-			newUsers = append(newUsers, user)
-		} else {
-			flag = true
+	return nil
+}
+
+func (ur *UserRepo) GetAllManager()([]user.User, error) {
+	var managers []user.User
+
+    query := config.SelectQuery("users", []string{"id", "name"}, "role")
+
+	rows, err := ur.db.Query(query,roles.Manager)
+	if err != nil {
+		return  nil,err
+	}
+	defer rows.Close()
+    counter:=1
+	for rows.Next(){
+        // var id,name string
+        var u user.User
+		err:=rows.Scan(&u.Id,&u.Name)
+		// color.Yellow("%d. Name: %s, UserId: %s\n", counter, name, id)
+        counter++
+		if err!=nil{
+			return nil,err
 		}
+		managers = append(managers, u)
 	}
 
-	if !flag {
+	return managers,nil
+	
+}
+
+func (ur *UserRepo) UpdateProfile(userId, field, updatedData string) error {
+	allowedFields := map[string]bool{
+		"name":         true,
+		"email":        true,
+		"password":     true,
+		"phone_number": true,
+	}
+
+	if !allowedFields[field] {
+		return errors.New("invalid field update")
+	}
+
+	query := fmt.Sprintf("UPDATE users SET %s = ? WHERE id = ?", field)
+
+	result, err := ur.db.Exec(query, updatedData, userId)
+	if err != nil {
+		// Handle unique constraint errors
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			if strings.Contains(err.Error(), "email") {
+				return errors.New("email already exists")
+			}
+			if strings.Contains(err.Error(), "phone_number") {
+				return errors.New("phone number already exists")
+			}
+		}
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
 		return errors.New("user not found")
 	}
 
-	updatedData, err := json.MarshalIndent(newUsers, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(userFile, updatedData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-func (ur *UserRepo) GetAllManager() error {
-	Data, err := os.ReadFile(userFile)
-
-	if err != nil {
-		return err
-	}
-
-	var users []user.User
-	_ = json.Unmarshal(Data, &users)
-	counter := 1
-	flag := false
-	for _, user := range users {
-		if user.Role == roles.Manager { // TODO: Use enum
-			flag = true
-			fmt.Printf("%d. Name :%s , UserId : %s \n", counter, user.Name, user.Id)
-			counter++
-		}
-	}
-	if !flag {
-		return errors.New("no manager found")
-	}
 	return nil
 }
 
-func (ur *UserRepo) UpdateProfile(userId, name, email, password, number string) error {
-	data, err := os.ReadFile(userFile)
+
+
+func (ur *UserRepo) PromoteEmployee(employeeId string) error {
+
+	query := "UPDATE users SET role = ? WHERE id = ?"
+    result, err := ur.db.Exec(query, roles.Manager, employeeId)
 	if err != nil {
 		return err
 	}
 
-	var users []user.User
-	err = json.Unmarshal(data, &users)
+	// Check if any row was updated
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-
-	found := false
-	for i, user := range users {
-		if user.Id == userId {
-			users[i].Name = name
-			users[i].Email = email
-			users[i].Password = password
-			users[i].PhoneNumber = number
-			found = true
-			break
-		}
-	}
-
-	if !found {
+	if rowsAffected == 0 {
 		return errors.New("user not found")
-	}
-
-	updatedData, err := json.MarshalIndent(users, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(userFile, updatedData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (ad *UserRepo) PromoteEmployee(employeeId string) error {
-
-	data, err := os.ReadFile(userFile)
-	if err != nil {
-		return errors.New("error in readfile")
-	}
-
-	var users []user.User
-	err = json.Unmarshal(data, &users)
-	if err != nil {
-		return errors.New("error in unmarshal")
-	}
-
-	found := false
-	for i, u := range users {
-		if u.Id == employeeId {
-			users[i].Role = roles.Manager
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.New("employee not found")
-	}
-
-	
-	updatedData, err := json.MarshalIndent(users, "", "  ")
-	if err != nil {
-		return errors.New("error in marshal")
-	}
-
-	
-	err = os.WriteFile(userFile, updatedData, 0644)
-	if err != nil {
-		return errors.New("error in writing file")
 	}
 
 	return nil
 }
 func (ur *UserRepo) ViewAllEmployee() ([]user.User, error) {
-	var users []user.User
+	// Build SELECT query to get all employees
+	query := config.SelectQuery("users",[]string{"id", "name", "email", "role", "phone_number", "password"},"role")
+
+	
+	rows, err := ur.db.Query(query, roles.Employee)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	var employees []user.User
-
-	data, err := os.ReadFile(userFile)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) == 0 {
-		return []user.User{}, nil
-	}
-
-	err = json.Unmarshal(data, &users)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, user := range users {
-		if user.Role == roles.Employee {
-			employees = append(employees, user)
+	for rows.Next() {
+		var u user.User
+		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Role, &u.PhoneNumber, &u.Password)
+		if err != nil {
+			return nil, err
 		}
+		employees = append(employees, u)
+	}
+
+	if len(employees) == 0 {
+		return nil, errors.New("no employees found")
 	}
 
 	return employees, nil
 }
+
