@@ -15,12 +15,12 @@ import (
 var inputReader *bufio.Reader
 func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.UserHandler,taskHandler *handler.TaskHandler,projectHandler *handler.ProjectHandler,commentHandler *handler.CommentHandler) {
 	for {
-		color.Blue(constants.AdminDashbEntry)
-		color.Blue("1. View Profile")
-		color.Blue("2. View All Users")
-		color.Blue("3. Delete User")
-		color.Blue("4. Promote Employee to Manager")
-		color.Blue("5. Manage Projects (Add, View, Delete)")
+		color.Cyan(constants.AdminDashbEntry)
+		color.Cyan("1. View Profile")
+		color.Cyan("2. View All Users")
+		color.Cyan("3. Delete User")
+		color.Cyan("4. Promote Employee to Manager")
+		color.Cyan("5. Manage Projects (Add, View, Delete)")
 		// color.Blue("5. Add New Project")
 		// color.Blue("6. View All Projects")
 		// color.Blue("7. Delete Project")
@@ -157,7 +157,10 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
 			}
 			handler.Pause()
         case 4:
-            _ = commentHandler.DeleteComment(ctx, taskId)
+            err:= commentHandler.DeleteComment(ctx, taskId)
+			if err!=nil{
+				color.Red("%s",err)
+			}
 			handler.Pause()
         case 5:
             return

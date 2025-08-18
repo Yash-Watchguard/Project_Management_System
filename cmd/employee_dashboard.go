@@ -13,11 +13,11 @@ func employeeDashboard(ctx context.Context, user *user.User,userHandler *handler
     // use taskHandler and commentHandler wherever needed
 
 	for{
-        color.Blue(constants.EmployDashbEntry)
-		color.Blue("1. View Profile")
-		color.Blue("2. View All Assigned Task")
-		color.Blue("3  Update Task Status")
-		color.Blue("4. Logout")
+        color.Cyan(constants.EmployDashbEntry)
+		color.Cyan("1. View Profile")
+		color.Cyan("2. View All Assigned Task")
+		color.Cyan("3  Update Task Status")
+		color.Cyan("4. Logout")
 
 		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
         choice, _ := strconv.Atoi(choiceStr)

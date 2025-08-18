@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	DBS  *sql.DB
+	DB  *sql.DB
 	once sync.Once
 )
 
@@ -32,7 +32,7 @@ func GetDbInstance() (*sql.DB,error) {
 		if err != nil {
 			log.Fatalf("Error connecting to the database: %v", err)
 		}
-		DBS=db
+		DB=db
 	})
-	return DBS,err
+	return DB,err
 }

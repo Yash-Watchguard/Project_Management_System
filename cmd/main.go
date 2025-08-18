@@ -82,6 +82,7 @@ func RunApp() error {
 			user,err:= authHandler.Login()
 			if err!=nil{
 				color.Red("%v",err)
+				continue
 			}
 			ctx=context.Background()
 	        ctx=context.WithValue(ctx,ContextKey.UserId,user.Id)

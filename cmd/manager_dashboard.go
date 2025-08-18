@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	
+
 	"strconv"
-	
-    "github.com/Yash-Watchguard/Tasknest/handler"
-	
+
+	"github.com/Yash-Watchguard/Tasknest/handler"
+
+	"github.com/Yash-Watchguard/Tasknest/internal/constants"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
-	
+
 	"github.com/fatih/color"
-	
 )
 
 func ManagerDashboard(
@@ -22,7 +22,7 @@ func ManagerDashboard(
 	commentHandler *handler.CommentHandler,
 ) {
 	for {
-		color.Cyan("===== Manager Dashboard =====")
+		color.Cyan(constants.ManagerDashbEntry)
 		color.Cyan("1. View Profile")
 		color.Cyan("2. View Assigned Projects")
 		color.Cyan("3. View All Employees")
