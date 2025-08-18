@@ -41,7 +41,7 @@ func employeeDashboard(ctx context.Context, user *user.User,userHandler *handler
             break
             }
 			commentMenu(ctx, commentHandler, taskId)
-			handler.Pause()
+			
 		case 3:
 			taskId,err:=handler.GetInput("Enter Task Id : ")
 			if err!=nil{

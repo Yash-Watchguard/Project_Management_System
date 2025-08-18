@@ -23,7 +23,7 @@ func (u *UserService) ViewProfile(ctx context.Context, userId string) ([]user.Us
 	userID := ctx.Value(ContextKey.UserId).(string)
 	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)
 
-	if userID == userId || userRole == 0 {
+	if userID == userId || userRole == 0 ||userRole==1 || userRole==2{
 		return u.userRepo.ViewProfile(userId)
 	}
 	return nil, errors.New("unauthorized access")

@@ -88,7 +88,7 @@ func RunApp() error {
 	        ctx=context.WithValue(ctx,ContextKey.UserPassword,user.Password)
 	        ctx=context.WithValue(ctx,ContextKey.UserRole,user.Role)
 
-	        color.Green("Welcom back %s in Worknest☺️", user.Name)
+	        color.Green("Welcom back, %s, to Worknest☺️", user.Name)
 	
 	        switch user.Role{
 	        case 0:

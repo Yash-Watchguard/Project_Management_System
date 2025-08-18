@@ -94,7 +94,7 @@ func projectMenu(ctx context.Context, projectHandler *handler.ProjectHandler, ta
             }
             taskMenu(ctx, taskHandler, commentHandler, projectId)
 
-            handler.Pause()
+            
 
         case 3:
             err:= projectHandler.DeleteProject(ctx)
@@ -141,20 +141,24 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
             err:=commentHandler.ViewAllComment(ctx, taskId)
 			if err!=nil{
 				color.Red("%s",err)
-				handler.Pause()
+				
 			}
+			handler.Pause()
         case 2:
             err:= commentHandler.AddNewComment(ctx, taskId)
 			if err!=nil{
 				color.Red("%s",err)
 			}
+			
         case 3:
             err := commentHandler.UpdateComment(ctx, taskId)
 			if err!=nil{
 				color.Red("%s",err)
 			}
+			handler.Pause()
         case 4:
             _ = commentHandler.DeleteComment(ctx, taskId)
+			handler.Pause()
         case 5:
             return
         default:

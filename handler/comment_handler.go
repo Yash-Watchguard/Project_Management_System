@@ -1,29 +1,30 @@
 package handler
 
 import (
+	"bufio"
 	"context"
-    "bufio"
-	"os"
-	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-"fmt"
-"strings"
 	"errors"
+	"fmt"
+	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+	"os"
+	"strings"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
-	
+
 	"github.com/fatih/color"
 )
-var reader= bufio.NewReader(os.Stdin)
+
+var reader = bufio.NewReader(os.Stdin)
 
 type CommentHandler struct {
-	userservice *service1.UserService
+	userservice    *service1.UserService
 	commentService *service1.CommentService
 }
-func NewCommentHandler(commentService *service1.CommentService,userService *service1.UserService)*CommentHandler{
-	return &CommentHandler{commentService: commentService,userservice: userService}
-}
 
+func NewCommentHandler(commentService *service1.CommentService, userService *service1.UserService) *CommentHandler {
+	return &CommentHandler{commentService: commentService, userservice: userService}
+}
 
 func getInput(prompt string) (string, error) {
 	fmt.Print(color.RedString(prompt))
@@ -54,14 +55,21 @@ func (ch *CommentHandler) ViewAllComment(ctx context.Context, taskId string) err
 	}
 
 	for idx, comment := range comments {
+		user, err := ch.userservice.ViewProfile(ctx, comment.CreatedBy)
+if err != nil {
+    return fmt.Errorf("failed to fetch user profile: %w", err)
+}
+if len(user) == 0 {
+    return fmt.Errorf("no user found with ID %s", comment.CreatedBy)
+}
+
+
 		color.Blue("-------- Comment %d --------", idx+1)
-		color.Yellow("Task ID: %v", comment.TaskId)
-		color.Yellow("Created By: %v", comment.CreatedBy)
+		// color.Yellow("Task ID: %v", comment.TaskId)
+		color.Yellow("Created By: %v", user[0].Name)
 		color.Cyan("Content: %v", comment.Content)
 		color.Blue("----------------------------------------")
 	}
-
-	Pause()
 	return nil
 }
 
@@ -75,7 +83,6 @@ func (ch *CommentHandler) AddNewComment(ctx context.Context, taskId string) erro
 		return errors.New("invalid or missing user ID in context")
 	}
 
-	
 	content, err := getInput("Enter your comment: ")
 	if err != nil {
 		return err
@@ -98,7 +105,7 @@ func (ch *CommentHandler) AddNewComment(ctx context.Context, taskId string) erro
 	}
 
 	color.Green("✅ Comment added successfully!")
-	Pause()
+
 	return nil
 }
 
@@ -129,7 +136,7 @@ func (ch *CommentHandler) UpdateComment(ctx context.Context, taskId string) erro
 	}
 
 	color.Green("✅ Comment updated successfully!")
-	Pause()
+
 	return nil
 }
 
@@ -151,7 +158,3 @@ func (ch *CommentHandler) DeleteComment(ctx context.Context, taskId string) erro
 	Pause()
 	return nil
 }
-
-
-
-
