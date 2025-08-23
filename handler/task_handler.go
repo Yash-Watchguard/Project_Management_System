@@ -2,27 +2,22 @@ package handler
 
 import (
 	"context"
-
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-
 	"errors"
 	"fmt"
 	"time"
-
 	"github.com/Yash-Watchguard/Tasknest/internal/model/priority"
-
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
 	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
-
-	// "github.com/Yash-Watchguard/Tasknest/internal/service1"
 	"github.com/fatih/color"
 )
 
 type TaskHandler struct {
 	taskService *service1.TaskService
 }
-func NewTaskHandler(taskService *service1.TaskService)*TaskHandler{
+
+func NewTaskHandler(taskService *service1.TaskService) *TaskHandler {
 	return &TaskHandler{taskService: taskService}
 }
 
@@ -40,21 +35,21 @@ func (th *TaskHandler) ViewAllTask(ctx context.Context, projectId string) error 
 
 	// If no tasks exist
 	if len(tasks) == 0 {
-		
+
 		return errors.New("no task found for this project")
 	}
 
 	// Display all tasks
 	for i, task := range tasks {
 		color.Cyan("------------ Task %d ------------", i+1)
-		color.Cyan("Task ID        : %v", task.TaskId)
-		color.Cyan("Title          : %v", task.Title)
-		color.Cyan("Description    : %v", task.Description)
-color.Cyan("Acceptance_Criteria    :%v",task.AcceptanceCriteria)
-		color.Cyan("Priority       : %v", task.TaskPriority)
-		color.Cyan("Assigned To    : %v", task.AssignedTo)
-		color.Cyan("Status         : %v", task.TaskStatus)
-		color.Cyan("Deadline       : %v", task.Deadline)
+		fmt.Printf("%-20s: %v\n", "Id", task.TaskId)
+		fmt.Printf("%-20s: %v\n", "Title", task.Title)
+		fmt.Printf("%-20s: %v\n", "Description", task.Description)
+		fmt.Printf("%-20s: %v\n", "Acceptance_Criteria", task.AcceptanceCriteria)
+		fmt.Printf("%-20s: %v\n", "Priority", Priority.GetPriority(task.TaskPriority))
+		fmt.Printf("%-20s: %v\n", "Assigned To", task.AssignedTo)
+		fmt.Printf("%-20s: %v\n", "Status", status.GetStatusString(task.TaskStatus))
+		fmt.Printf("%-20s: %v\n", "Deadline", task.Deadline)
 		fmt.Println()
 	}
 
@@ -85,10 +80,10 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 		if err != nil {
 			return err
 		}
-      
+
 		deadline, err = TimeParser(deadlineStr)
 		if err != nil {
-			color.Red("%v",err)
+			color.Red("%v", err)
 		} else {
 			break
 		}
@@ -115,16 +110,16 @@ func (th *TaskHandler) CreateTask(ctx context.Context, projectId string) error {
 	}
 
 	newTask := task.Task{
-		TaskId:       taskId,
-		Title:         title,
-		Description:  description,
+		TaskId:             taskId,
+		Title:              title,
+		Description:        description,
 		AcceptanceCriteria: acceptanceCriteria,
-		Deadline:     deadline,
-		TaskPriority: priority,
-		TaskStatus:   status.Pending,
-		AssignedTo:   assignedTo,
-		ProjectId:    projectId,
-		CreatedBy:    managerId,
+		Deadline:           deadline,
+		TaskPriority:       priority,
+		TaskStatus:         status.Pending,
+		AssignedTo:         assignedTo,
+		ProjectId:          projectId,
+		CreatedBy:          managerId,
 	}
 
 	// Call service method
@@ -172,49 +167,44 @@ func (th *TaskHandler) DeleteTask(ctx context.Context, projectId string) error {
 	return nil
 }
 func (th *TaskHandler) GetAssignedTask(ctx context.Context, userId string) error {
-    tasks, err := th.taskService.GetAssigenedTask(ctx, userId)
-    if err != nil {
-        return fmt.Errorf("failed to fetch assigned tasks: %v", err)
-    }
+	tasks, err := th.taskService.GetAssigenedTask(ctx, userId)
+	if err != nil {
+		return fmt.Errorf("failed to fetch assigned tasks: %v", err)
+	}
 
-    if len(tasks) == 0 {
-        color.Yellow("No tasks assigned.")
-        return nil
-    }
+	if len(tasks) == 0 {
+		color.Yellow("No tasks assigned.")
+		return nil
+	}
 
-    for i, task := range tasks {
-        color.Cyan("------------ Task %d ------------", i+1)
-        color.Cyan("Task ID       : %v", task.TaskId)
-        color.Cyan("Title         : %v", task.Title)
-        color.Cyan("Description   : %v", task.Description)
-        color.Cyan("Priority      : %v", task.TaskPriority)
-        color.Cyan("Status        : %v", task.TaskStatus)
-        color.Cyan("Created By    : %v", task.CreatedBy)
-        color.Cyan("Deadline      : %v", task.Deadline.Format("2006-01-02 15:04:05"))
-        fmt.Println()
-    }
+	for i, task := range tasks {
+		color.Cyan("------------ Task %d ------------", i+1)
+		fmt.Printf("%-20s : %v\n", "Task ID", task.TaskId)
+		fmt.Printf("%-20s : %v\n", "Title", task.Title)
+		fmt.Printf("%-20s : %v\n", "Description", task.Description)
+		fmt.Printf("%-20s : %v\n", "Priority", Priority.GetPriority(task.TaskPriority))
+		fmt.Printf("%-20s : %v\n", "Acceptance Criteria", task.AcceptanceCriteria)
+		fmt.Printf("%-20s : %v\n", "Status", status.GetStatusString(task.TaskStatus))
+		fmt.Printf("%-20s : %v\n", "Created By", task.CreatedBy)
+		fmt.Printf("%-20s : %v\n", "Deadline", task.Deadline.Format("2006-01-02 15:04:05"))
+		fmt.Println()
+	}
 
-    
-    return nil
+	return nil
 }
 
-func(th *TaskHandler)UpdateTaskStatus(ctx context.Context,taskId string)error{
+func (th *TaskHandler) UpdateTaskStatus(ctx context.Context, taskId string) error {
 
-updatedStatus,err:=GetInput("Enter Updated status (pending/in progress/done) : ")
-   if err!=nil{
-	color.Red("error in getting input")
-   }
-   newStatus:=status.GetStatusFromString(updatedStatus)
-   err=th.taskService.UpdateTaskStatus(ctx,taskId,newStatus)
-   if err!=nil{
-	return err
-   }
-   color.Green("Task Status Updated Successfully")
-  Pause()
-   return nil
-} 
-
-
-
-
-
+	updatedStatus, err := GetInput("Enter Updated status (pending/in progress/done) : ")
+	if err != nil {
+		color.Red("error in getting input")
+	}
+	newStatus := status.GetStatusFromString(updatedStatus)
+	err = th.taskService.UpdateTaskStatus(ctx, taskId, newStatus)
+	if err != nil {
+		return err
+	}
+	color.Green("Task Status Updated Successfully")
+	Pause()
+	return nil
+}

@@ -19,7 +19,7 @@ func employeeDashboard(ctx context.Context, user *user.User,userHandler *handler
 		color.Cyan("3  Update Task Status")
 		color.Cyan("4. Logout")
 
-		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+		choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice{

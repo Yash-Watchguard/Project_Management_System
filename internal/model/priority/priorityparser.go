@@ -12,3 +12,14 @@ func PriorityParser(input string) (Priority, error) {
 		return 0, errors.New("invalid priority")
 	}
 }
+func GetPriority(priority Priority) (string) {
+	switch priority {
+	case 0:
+		return "Low"
+	case 1:
+		return "Medium"
+	case 2:
+		return "High"
+	}
+	return  ""
+}

@@ -24,3 +24,15 @@ func (p *Priority) Scan(value interface{}) error {
 func (p Priority) Value() (driver.Value, error) {
     return int64(p), nil
 }
+
+// func GetPriority(priority Priority)string{
+//       switch priority{
+//       case 0:
+//         return "Pending"
+//       case 1:
+//         return "In progress"
+//       case 2:
+//         return "Done"
+//       }
+//       return ""
+// }

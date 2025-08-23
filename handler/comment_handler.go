@@ -66,8 +66,9 @@ if len(user) == 0 {
 
 		color.Blue("-------- Comment %d --------", idx+1)
 		// color.Yellow("Task ID: %v", comment.TaskId)
-		color.Yellow("Created By: %v", user[0].Name)
-		color.Cyan("Content: %v", comment.Content)
+	  color.Yellow("Comment Id: %v",comment.CommentId)
+	  color.Yellow("Created By: %v", user[0].Name)
+		color.Cyan("Content   : %v", comment.Content)
 		color.Blue("----------------------------------------")
 	}
 	return nil

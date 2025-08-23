@@ -24,7 +24,7 @@ func AdminDashboard(ctx context.Context, user *user.User,userHandler *handler.Us
 		// color.Blue("5. Add New Project")
 		// color.Blue("6. View All Projects")
 		// color.Blue("7. Delete Project")
-		color.Blue("6. Logout")
+		color.Cyan("6. Logout")
 
 	    choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
@@ -133,7 +133,7 @@ func commentMenu(ctx context.Context, commentHandler *handler.CommentHandler, ta
         color.Cyan("4. Delete Comment")
         color.Cyan("5. Back")
 
-       choiceStr, _ := handler.GetInput("\nEnter your choice : ")
+       choiceStr, _ := handler.GetInput("Enter your choice : ")
     choice, _ := strconv.Atoi(choiceStr)
 
         switch choice {

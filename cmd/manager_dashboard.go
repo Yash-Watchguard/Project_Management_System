@@ -29,7 +29,7 @@ func ManagerDashboard(
 		color.Cyan("4. Promote Employee")
 		color.Cyan("5. Logout")
 
-		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+		choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {
@@ -65,7 +65,7 @@ func assignedProjectsMenu(ctx context.Context, user *user.User, ph *handler.Proj
 
 	color.Blue("1. manage a project")
 	color.Blue("2. go back")
-	choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+	choiceStr, _ := handler.GetInput("\nEnter your choice : ")
     choice, _ := strconv.Atoi(choiceStr)
 	if choice == 1 {
 		var projectId string
@@ -82,7 +82,7 @@ func projectTaskMenu(ctx context.Context, projectId string, th *handler.TaskHand
 		color.Cyan("4. Show Project Status")
 		color.Cyan("5. Back")
 		color.Cyan("---------------------------------")
-		choiceStr, _ := handler.GetInput("\nEnter your choice: ")
+		choiceStr, _ := handler.GetInput("\nEnter your choice : ")
         choice, _ := strconv.Atoi(choiceStr)
 
 		switch choice {

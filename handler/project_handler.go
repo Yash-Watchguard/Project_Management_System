@@ -102,12 +102,12 @@ func (ph *ProjectHandler) SelectAndReturnProjectId(ctx context.Context) (string,
 
 	for _, project := range projects {
 		if project.CreatedBy == userId {
-			color.Yellow("----------------%d----------------", counter)
-			color.Yellow("Project Name: %v", project.ProjectName)
-			color.Yellow("Project Id: %v", project.ProjectId)
-			color.Yellow("Project Description: %v", project.ProjectDescription)
-			color.Yellow("Project Deadline: %v", project.Deadline)
-			color.Yellow("Assigned To: %v", project.AssignedManager)
+			color.Cyan("----------------%d----------------", counter)
+			fmt.Printf("%-20s: %v\n","Project Name",project.ProjectName)
+			fmt.Printf("%-20s: %v\n","Project Id",project.ProjectId)
+			fmt.Printf("%-20s: %v\n","Project Description",project.ProjectDescription)
+			fmt.Printf("%-20s: %v\n","Project Deadline",project.Deadline)
+			fmt.Printf("%-20s: %v\n","Assigned To",project.AssignedManager)
 			
 			projectMap[counter] = project.ProjectId
 			counter++
@@ -186,14 +186,17 @@ func (ph *ProjectHandler) ViewAssignedProjects(ctx context.Context, user *user.U
 	}
 
 	for i, project := range assignedProjects {
-		color.Cyan("----------- Project %d -----------", i+1)
-		color.Yellow("Project ID     : %s", project.ProjectId)
-		color.Yellow("Project Name   : %s", project.ProjectName)
-		color.Yellow("Description    : %s", project.ProjectDescription)
-		color.Yellow("Deadline       : %s", project.Deadline.Format("02 Jan 2006"))
-		color.Yellow("Created By     : %s", project.CreatedBy)
-		color.Cyan("----------------------------------")
-	}
+    color.Cyan("----------- Project %d -----------", i+1)
+
+    fmt.Printf("%-15s : %s\n", "Project ID", project.ProjectId)
+    fmt.Printf("%-15s : %s\n", "Project Name", project.ProjectName)
+    fmt.Printf("%-15s : %s\n", "Description", project.ProjectDescription)
+    fmt.Printf("%-15s : %s\n", "Deadline", project.Deadline.Format("02 Jan 2006"))
+    fmt.Printf("%-15s : %s\n", "Created By", project.CreatedBy)
+
+    color.Cyan("----------------------------------")
+}
+
 
 	return nil
 }
