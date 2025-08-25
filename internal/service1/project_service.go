@@ -1,14 +1,13 @@
 package service1
 
 import (
-	"context"
-	"errors"
+	
 
 	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 	
-	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
+	
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
-	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+	
 )
 
 type ProjectService struct{
@@ -23,30 +22,18 @@ func (ps *ProjectService) AddProject(project project.Project) error {
 	return ps.projectRepo.AddProject(project)
 }
 
-func (ps *ProjectService) ViewAllProjects(ctx context.Context) ([]project.Project, error) {
-	var projects []project.Project
-	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)
-	if userRole != 0 {
-		return projects, errors.New("unauthorized access")
-	}
+func (ps *ProjectService) ViewAllProjects() ([]project.Project, error) {
 	return ps.projectRepo.ViewAllProjects()
 }
 
-func (ps *ProjectService) DeleteProject(ctx context.Context, projectID string) error {
-	userRole := ctx.Value(ContextKey.UserRole).(roles.Role)
-	if userRole != 0 {
-		return errors.New("unauthorized access")
-	}
-	return ps.projectRepo.DeleteProject(projectID)
-}
-func (ps *ProjectService) ViewAssignedProject(ctx context.Context)([]project.Project,error){
-	userRole:=ctx.Value(ContextKey.UserRole).(roles.Role)
+func (ps *ProjectService) DeleteProject( projectID string) error {
 	
-	var projects []project.Project
-	if userRole!=1 {
-		return projects,errors.New("unauthorized access")
-	}
-	projects,err:=ps.projectRepo.ViewAllProjects()
+	return ps.projectRepo.DeleteProject(projectID)
+	
+}
+func (ps *ProjectService) ViewAssignedProject(userId string)([]project.Project,error){
+	
+	projects,err:=ps.projectRepo.ViewAssignedProject(userId)
 
 	return projects,err
 }

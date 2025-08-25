@@ -1,5 +1,7 @@
 package status
 
+import "errors"
+
 func GetStatusString(status TaskStatus) string {
 	switch status {
 	case Pending:
@@ -12,15 +14,15 @@ func GetStatusString(status TaskStatus) string {
 		return "Unknown"
 	}
 }
-func GetStatusFromString(statusStr string) TaskStatus {
+func GetStatusFromString(statusStr string) (TaskStatus, error) {
 	switch statusStr {
 	case "pending":
-		return Pending
+		return Pending, nil
 	case "in progress":
-		return InProgress
+		return InProgress, nil
 	case "done":
-		return Done
+		return Done, nil
 	default:
-		return Pending
+		return Pending, errors.New("invalid status")
 	}
 }

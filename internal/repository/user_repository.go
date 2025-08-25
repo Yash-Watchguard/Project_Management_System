@@ -175,46 +175,56 @@ func (ur *UserRepo) GetAllManager()([]user.User, error) {
 	
 }
 
-func (ur *UserRepo) UpdateProfile(userId, field, updatedData string) error {
-	allowedFields := map[string]bool{
-		"name":         true,
-		"email":        true,
-		"password":     true,
-		"phone_number": true,
-	}
+func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{}) error {
+    allowedFields := map[string]bool{
+        "name":         true,
+        "email":        true,
+        "password":     true,
+        "phone_number": true,
+    }
 
-	if !allowedFields[field] {
-		return errors.New("invalid field update")
-	}
+    setClauses := []string{}
+    args := []interface{}{}
 
-	query := fmt.Sprintf("UPDATE users SET %s = ? WHERE id = ?", field)
+    for field, value := range updates {
+        if !allowedFields[field] {
+            return fmt.Errorf("invalid field update: %s", field)
+        }
+        setClauses = append(setClauses, fmt.Sprintf("%s = ?", field))
+        args = append(args, value)
+    }
 
-	result, err := ur.db.Exec(query, updatedData, userId)
-	if err != nil {
-		// Handle unique constraint errors
-		if strings.Contains(err.Error(), "Duplicate entry") {
-			if strings.Contains(err.Error(), "email") {
-				return errors.New("email already exists")
-			}
-			if strings.Contains(err.Error(), "phone_number") {
-				return errors.New("phone number already exists")
-			}
-		}
-		return err
-	}
+    if len(setClauses) == 0 {
+        return errors.New("no valid fields to update")
+    }
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errors.New("user not found")
-	}
+    query := fmt.Sprintf("UPDATE users SET %s WHERE id = ?", strings.Join(setClauses, ", "))
+    args = append(args, userId)
 
-	return nil
+    result, err := ur.db.Exec(query, args...)
+    if err != nil {
+        // Handle unique constraint errors
+        if strings.Contains(err.Error(), "Duplicate entry") {
+            if strings.Contains(err.Error(), "email") {
+                return errors.New("email already exists")
+            }
+            if strings.Contains(err.Error(), "phone_number") {
+                return errors.New("phone number already exists")
+            }
+        }
+        return err
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if rowsAffected == 0 {
+        return errors.New("user not found")
+    }
+
+    return nil
 }
-
-
 
 func (ur *UserRepo) PromoteEmployee(employeeId string) error {
 
@@ -261,5 +271,23 @@ func (ur *UserRepo) ViewAllEmployee() ([]user.User, error) {
 	}
 
 	return employees, nil
+}
+
+func(ur *UserRepo)GetUserByEmail(email string)(*user.User,error){
+      query := config.SelectQuery("users", []string{"id", "name", "email", "role", "phone_number"}, "email")
+
+	row := ur.db.QueryRow(query, email)
+
+	var u user.User
+	var user []user.User
+	err := row.Scan(&u.Id, &u.Name, &u.Email, &u.Role, &u.PhoneNumber)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+    user = append(user, u)
+	return &user[0], nil
 }
 

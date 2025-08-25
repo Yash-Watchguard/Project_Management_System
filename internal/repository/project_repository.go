@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
     "time"
+    "strings"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
 )
 
@@ -66,36 +67,45 @@ func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
 }
 
 func (pr *ProjectRepo) DeleteProject(projectID string) error {
-    // Check if the project exists first
-    var exists bool
-    checkQuery := `SELECT EXISTS(SELECT 1 FROM projects WHERE project_id = ?)`
-    err := pr.db.QueryRow(checkQuery, projectID).Scan(&exists)
-    if err != nil {
-        return err
-    }
+   
+    projectID = strings.TrimSpace(projectID)
 
-    if !exists {
+ 
+    var existsInt int
+    checkQuery := `SELECT EXISTS(SELECT 1 FROM projects WHERE project_id = ?)`
+    err := pr.db.QueryRow(checkQuery, projectID).Scan(&existsInt)
+    if err != nil {
+        return errors.New("failed to check project existence")
+    }
+    if existsInt == 0 {
         return errors.New("project not found")
     }
 
-    // Delete the project
-    deleteQuery := `DELETE FROM projects WHERE project_id = ?`
-    result, err := pr.db.Exec(deleteQuery, projectID)
+    
+    _, err = pr.db.Exec(`DELETE FROM tasks WHERE projectid = ?`, projectID)
     if err != nil {
-        return err
+        return errors.New("failed to delete tasks for the project")
     }
 
+    // 3️⃣ Delete the project itself
+    result, err := pr.db.Exec(`DELETE FROM projects WHERE project_id = ?`, projectID)
+    if err != nil {
+        return errors.New("failed to delete project")
+    }
+
+    // 4️⃣ Verify that the deletion affected a row
     rowsAffected, err := result.RowsAffected()
     if err != nil {
-        return err
+        return errors.New("failed to get rows affected")
     }
-
     if rowsAffected == 0 {
         return errors.New("no project deleted")
     }
 
     return nil
 }
+
+
 
 
 func (pr *ProjectRepo) ViewAssignedProject(userId string) ([]project.Project, error) {

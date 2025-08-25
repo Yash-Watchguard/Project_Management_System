@@ -11,8 +11,9 @@ type UserRepository interface {
 	ViewProfile(userId string)([]user.User,error)
 	GetAllUsers()([]user.User,error)
 	DeleteUserById(userId string)error
-	UpdateProfile(userId string,field,updatedData string)error
+	UpdateProfile(userId string,mp map[string]interface{})error
 	GetAllManager()([]user.User,error)
 	PromoteEmployee(employeeId string) error
 	ViewAllEmployee() ([]user.User, error) 
+	GetUserByEmail(email string)(*user.User,error)
 }

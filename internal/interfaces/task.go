@@ -10,4 +10,5 @@ type TaskRepo interface {
 	DeleteTask(taskId string)error
 	ViewAssignedTask(empId string)([]task.Task,error)
 	UpdateTaskStatus(userId string,empId string,updatedStatus status.TaskStatus)(error)
+	ViewAllAssignedTasksInProject(projectId string,empId string)([]task.Task,error)
 }

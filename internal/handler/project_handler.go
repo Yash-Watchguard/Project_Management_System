@@ -1,0 +1,271 @@
+package handler
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+     "github.com/Yash-Watchguard/Tasknest/internal/logger"
+	 "github.com/Yash-Watchguard/Tasknest/internal/response"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+
+	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
+	
+    "encoding/json"
+	
+	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+	
+)
+
+type ProjectHandler struct {
+	userService service1.UserService
+	projectService service1.ProjectService
+	taskService service1.TaskService
+}
+
+func NewProjectHandler(projectService *service1.ProjectService ,userService *service1.UserService, taskService *service1.TaskService)*ProjectHandler{
+	return &ProjectHandler{projectService: *projectService,userService: *userService,taskService: *taskService}
+}
+
+func(ph *ProjectHandler)ProjectHandler(w http.ResponseWriter,r * http.Request){
+
+	switch r.Method{
+	case http.MethodGet:
+		ph.GetMethods(w,r)
+    case http.MethodPost:
+		ph.CreateProject(w,r)
+	case http.MethodDelete:
+		ph.DeleteProject(w,r)
+	default:
+		return
+	}
+}
+func(ph *ProjectHandler)GetMethods(w http.ResponseWriter, r *http.Request){
+	path := strings.TrimPrefix(r.URL.Path, "/v1/projects/")
+
+	pathSegments := strings.Split(strings.Trim(path, "/"), "/")
+
+	switch len(pathSegments){
+	case 0,1:
+		ph.GetProjects(w,r)
+	case 2:
+		ph.ProjectStatus(w,r,pathSegments)
+	}
+}
+func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request,pathSegments []string){
+     projectId:=pathSegments[0]
+	 if(pathSegments[1]!="status"){
+		logger.Error("Invalid path")
+		response.ErrorResponse(w,http.StatusNotFound,"Invalid path",404)
+		return
+	 }
+
+	 role:=r.Context().Value(ContextKey.UserRole).(roles.Role)
+
+	 if role==roles.Employee{
+		logger.Error("unauthorized person wants to view all projects")
+        response.ErrorResponse(w, http.StatusForbidden, "Access denied", 1008)
+        return
+	 }
+     
+	projectTasks,err:=ph.taskService.ViewAllTask(projectId)
+
+	if err!=nil{
+		logger.Error("error in fatching tasks")
+		response.ErrorResponse(w,http.StatusInternalServerError,"Error fatching the tasks",1010)
+	}
+    //   calculate the project status on the basis of the tasks and task  status
+     
+    
+	if len(projectTasks) == 0 {
+		logger.Error("No task found")
+	}
+    
+	total := len(projectTasks)
+	done := 0
+
+	for _, t := range projectTasks {
+		if t.TaskStatus == status.Done {
+			done++
+		}
+	}
+
+	percentDone := (float64(done) / float64(total)) * 100
+
+	
+
+	type ProjectStatusResponse struct {
+        ProjectID            string  `json:"projectId"`
+        CompletedTasks       int     `json:"completedTasks"`
+        TotalTasks           int     `json:"totalTasks"`
+        CompletionPercentage string `json:"completionPercentage"`
+    }
+
+    statusResponse := &ProjectStatusResponse{
+        ProjectID:            projectId,
+        CompletedTasks:       done,
+        TotalTasks:           total,
+        CompletionPercentage: fmt.Sprintf("%v % ",percentDone),
+    }
+
+	logger.Info("status get successfully")
+	response.SuccessResponse(w,statusResponse,"Status Fatched",http.StatusOK)
+}
+func (ph *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+    role, ok := ctx.Value(ContextKey.UserRole).(roles.Role)
+    if !ok {
+        logger.Error("user role not found")
+        response.ErrorResponse(w, http.StatusUnauthorized, "User not authenticated", 1007)
+        return
+    }
+
+    pathSegments := strings.Split(strings.Trim(r.URL.Path, "/"), "/") // remove leading/trailing slashes
+
+    if len(pathSegments) < 2 || pathSegments[0] != "v1" || pathSegments[1] != "projects" {
+        response.ErrorResponse(w, http.StatusBadRequest, "Invalid path", 1008)
+        return
+    }
+
+ 
+    if len(pathSegments) == 2 {
+		if role!=roles.Admin{
+			logger.Error("unauthorized person wants to view all projects")
+            response.ErrorResponse(w, http.StatusForbidden, "Access denied", 1008)
+            return
+		}
+        projects, err := ph.projectService.ViewAllProjects()
+        if err != nil {
+			logger.Error("Failed to fetch projects")
+            response.ErrorResponse(w, http.StatusInternalServerError, "Failed to fetch projects", 1009)
+            return
+        }
+		logger.Info("Projects Retrived Successfully")
+        response.SuccessResponse(w, projects,"Projects Retrived Successfully",http.StatusOK)
+        return
+    }
+
+    // Case 2: /v1/projects/{assigned_user_id} => return projects assigned to that user
+    assignedUserID := pathSegments[2]
+    projects, err := ph.projectService.ViewAssignedProject(assignedUserID)
+    if err != nil {
+		logger.Error("Failed to fetch user's projects")
+        response.ErrorResponse(w, http.StatusInternalServerError, "Failed to fetch Assigned projects", 1010)
+        return
+    }
+    logger.Info("Projects retrived successfully")
+    response.SuccessResponse(w,projects,"Projects retrived successfully",http.StatusOK)
+	
+}
+
+func(ph *ProjectHandler)CreateProject(w http.ResponseWriter,r * http.Request){
+    ctx := r.Context()
+	createdBy:=ctx.Value(ContextKey.UserId).(string)
+    role, ok := ctx.Value(ContextKey.UserRole).(roles.Role)
+    if !ok {
+        logger.Error("user role not found")
+        response.ErrorResponse(w, http.StatusUnauthorized, "User not authenticated", 1007)
+        return
+    }
+
+	if role != roles.Admin {
+		logger.Error("unauthorized to create projects")
+        response.ErrorResponse(w, http.StatusForbidden, "Only admin can create projects", 1011)
+        return
+    }
+
+	var projectReq struct{
+		ProjectName       string `json:"projectName"`
+        ProjectDescription string `json:"projectDescription"`
+        Deadline          string `json:"deadline"` 
+        AssignedManagerID string `json:"assignedManagerId"`
+	}
+
+
+	if err := json.NewDecoder(r.Body).Decode(&projectReq); err != nil {
+		logger.Error("Invalid input")
+		response.ErrorResponse(w, http.StatusBadRequest, "Invalid input", 1001)
+		return
+	}
+	err := validate.Struct(projectReq)
+	if err != nil {
+		logger.Error("Validation error")
+		response.ErrorResponse(w, http.StatusBadRequest, "Invalid request body", 1001)
+		return
+	}
+    
+	projectId := GenerateUUID()
+    var actualdeadline time.Time
+
+	actualdeadline,_ = TimeParser(projectReq.Deadline)
+
+	project := &project.Project{
+		ProjectId:          projectId,
+		ProjectName:        projectReq.ProjectName,
+		ProjectDescription: projectReq.ProjectDescription,
+		Deadline:           actualdeadline,
+		CreatedBy:          createdBy,
+		AssignedManager:    projectReq.AssignedManagerID,
+	}
+
+	err =ph.projectService.AddProject(*project)
+	if err != nil {
+		logger.Error("Error creating project")
+		response.ErrorResponse(w, http.StatusInternalServerError, "Error creating project", 1006)
+		return
+	}
+
+	logger.Info("Project created sucessfully")
+	response.SuccessResponse(w, nil, "Project created successfully", http.StatusCreated)
+}
+
+func (ph *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+    role, ok := ctx.Value(ContextKey.UserRole).(roles.Role)
+    if !ok {
+        logger.Error("user role not found")
+        response.ErrorResponse(w, http.StatusUnauthorized, "User not authenticated", 1007)
+        return
+    }
+
+    
+    if role != roles.Admin {
+        logger.Error("unauthorized to delete projects")
+        response.ErrorResponse(w, http.StatusForbidden, "Only admin can delete projects", 1008)
+        return
+    }
+
+    
+    path := strings.TrimPrefix(r.URL.Path, "/v1/projects/")
+    projectId := strings.Trim(path, "/")
+    if projectId == "" {
+        response.ErrorResponse(w, http.StatusBadRequest, "Project ID is required", 1001)
+        return
+    }
+
+    
+    err := ph.projectService.DeleteProject(projectId)
+    if err != nil {
+        logger.Error("error deleting project ")
+        response.ErrorResponse(w, http.StatusInternalServerError, "Failed to delete project",1010 )
+        return
+    }
+
+    logger.Info("Project deleted successfully")
+    response.SuccessResponse(w, nil, "Project deleted successfully", http.StatusOK)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
