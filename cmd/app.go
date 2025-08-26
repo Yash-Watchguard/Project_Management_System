@@ -28,7 +28,7 @@ func runApp(db *sql.DB){
 	taskService:=service1.NewTaskService(taskRepo)
 	userService:=service1.NewUserService(userRepo)
 
-	router:=routers.SetupRouter(*authService,*userService,*projectService,*taskService, *commentService)
+	router:=routers.SetupRouter(authService,userService,projectService,taskService, commentService)
 
 	handler := middleware.CorsMiddleWare(
     middleware.LoggingMiddleWare(router),

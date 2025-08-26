@@ -11,11 +11,24 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
+
+
+type UserServiceInterface interface{
+    ViewProfile( userId string) ([]user.User, error)
+    ViewAllUsers() ([]user.User, error)
+    DeleteUser(userId string) error
+    GetAllManager(ctx context.Context) ([]user.User,error)
+    UpdateUser(id string, updates map[string]interface{}) error
+    PromoteEmployee( employeeId string) error
+    ViewAllEmplpyee(ctx context.Context)([]user.User,error)
+    IsUserPresent(name string, email string,password string)(*user.User,error)
+    CheckUserExist(email string)(bool)
+}
 type UserService struct{
 	userRepo    interfaces.UserRepository
 }
 
-func NewUserService(userRepo interfaces.UserRepository)*UserService{
+func NewUserService(userRepo interfaces.UserRepository)UserServiceInterface{
 return &UserService{userRepo: userRepo}
 }
 
@@ -106,4 +119,7 @@ func(u *UserService)CheckUserExist(email string)(bool){
 		 return true
 	}
 	return false
+}
+func(u *UserService)IsUserPresent(name string, email string,password string)(*user.User,error){
+    return u.userRepo.IsUserPresent(name,email,password)
 }

@@ -16,10 +16,10 @@ import (
 )
 
 type UserHandler struct {
-	userService *service1.UserService
+	userService service1.UserServiceInterface
 }
 
-func NewUserHandler(userService *service1.UserService) *UserHandler {
+func NewUserHandler(userService service1.UserServiceInterface) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 func (uh *UserHandler) UsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +40,8 @@ func (uh *UserHandler) UsersHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 func(uh *UserHandler)Getuser(w http.ResponseWriter,r *http.Request){
+
+   
 
     ctx := r.Context()
     userID, ok := ctx.Value(ContextKey.UserId).(string)

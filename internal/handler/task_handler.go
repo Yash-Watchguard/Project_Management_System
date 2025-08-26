@@ -3,11 +3,9 @@ package handler
 import (
 	// "context"
 	// "errors"
-	// "fmt"
 	"net/http"
-	// "strings"
+	"strings"
 	"encoding/json"
-	"time"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/logger"
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
@@ -26,10 +24,10 @@ import (
 )
 
 type TaskHandler struct {
-	taskService *service1.TaskService
+	taskService service1.TaskServiceInterface
 }
 
-func NewTaskHandler(taskService *service1.TaskService) *TaskHandler {
+func NewTaskHandler(taskService service1.TaskServiceInterface) *TaskHandler {
 	return &TaskHandler{taskService: taskService}
 }
 
@@ -114,20 +112,15 @@ func(th *TaskHandler)AssignedTasks(w http.ResponseWriter,r *http.Request){
 
 }
 func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
-
-
-	// apply rbac
-    
     projectId := r.PathValue("project_id")
     managerId := r.Context().Value(ContextKey.UserId).(string)
 
-    // Define expected request body
     var req struct {
         Title              string `json:"title"`
         Description        string `json:"description"`
         AcceptanceCriteria string `json:"acceptance_criteria"`
-        Deadline           string `json:"deadline"`   
-        Priority           string `json:"priority"`   
+        Deadline           string `json:"deadline"`
+        Priority           string `json:"priority"`
         AssignedTo         string `json:"assigned_to"`
     }
 
@@ -137,17 +130,13 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // deadline, err := time.Parse("2006-01-02", req.Deadline)
-	var deadline time.Time
-	deadline,err:=util.ParseDate(req.Deadline)
+    deadline, err := util.ParseDate(req.Deadline)
     if err != nil {
         logger.Error("invalid deadline format")
-        response.ErrorResponse(w, http.StatusBadRequest, "Invalid deadline format (use YYYY-MM-DD) or may be deadline in past", 400)
+        response.ErrorResponse(w, http.StatusBadRequest, "Invalid deadline format (use YYYY-MM-DD)", 400)
         return
     }
 
-    // Parse priority
-	
     priority, err := Priority.PriorityParser(req.Priority)
     if err != nil {
         logger.Error("invalid priority")
@@ -155,10 +144,9 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Generate task ID
+    req.AssignedTo = strings.TrimSpace(req.AssignedTo)
     taskId := GenerateUUID()
 
-    // Create task object
     newTask := task.Task{
         TaskId:             taskId,
         Title:              req.Title,
@@ -181,6 +169,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
     logger.Info("Task created successfully")
     response.SuccessResponse(w, newTask, "Task created successfully", http.StatusCreated)
 }
+
 
 func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
     projectId := r.PathValue("project_id")

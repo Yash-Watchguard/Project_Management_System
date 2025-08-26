@@ -10,11 +10,18 @@ import (
 	
 )
 
+type CommentServiceInterface interface{
+	ViewAllComment(taskId string) ([]comment.Comment, error)
+	UpdateComment(ctx context.Context, updatedComment comment.Comment) error
+	AddComment(newComment comment.Comment) error
+	DeleteComment(ctx context.Context, commentId string) error
+}
+
 type CommentService struct{
 	commentRepo interfaces.CommentRepo
 }
 
-func NewCommentService(commentRepo interfaces.CommentRepo)*CommentService{
+func NewCommentService(commentRepo interfaces.CommentRepo) CommentServiceInterface{
 	return &CommentService{commentRepo: commentRepo}
 }
 

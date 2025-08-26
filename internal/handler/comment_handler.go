@@ -19,11 +19,11 @@ import (
 
 
 type CommentHandler struct {
-	userservice    *service1.UserService
-	commentService *service1.CommentService
+	userservice    service1.UserServiceInterface
+	commentService service1.CommentServiceInterface
 }
 
-func NewCommentHandler(commentService *service1.CommentService, userService *service1.UserService) *CommentHandler {
+func NewCommentHandler(commentService service1.CommentServiceInterface, userService service1.UserServiceInterface) *CommentHandler {
 	return &CommentHandler{commentService: commentService, userservice: userService}
 }
 

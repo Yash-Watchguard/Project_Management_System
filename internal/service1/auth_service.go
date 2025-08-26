@@ -5,11 +5,16 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
 
+type AuthServiceInterface interface{
+	Signup(user *user.User) error
+	Login(name, email, password string) (*user.User, error)
+}
+
 type AuthService struct {
 	Repo interfaces.UserRepository
 }
 
-func NewAuthService(repo interfaces.UserRepository) *AuthService {
+func NewAuthService(repo interfaces.UserRepository) AuthServiceInterface{
 	return &AuthService{Repo: repo}
 }
 

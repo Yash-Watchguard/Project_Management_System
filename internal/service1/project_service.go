@@ -10,11 +10,18 @@ import (
 	
 )
 
+type ProjectServiceInterface interface{
+   AddProject(project project.Project) error
+   ViewAllProjects() ([]project.Project, error)
+   DeleteProject( projectID string) error
+   ViewAssignedProject(userId string)([]project.Project,error)
+}
+
 type ProjectService struct{
 	projectRepo interfaces.ProjectRepository
 }
 
-func NewProjectService(projectRepo interfaces.ProjectRepository)*ProjectService{
+func NewProjectService(projectRepo interfaces.ProjectRepository)ProjectServiceInterface{
 	return &ProjectService{projectRepo: projectRepo}
 }
 

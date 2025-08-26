@@ -20,13 +20,13 @@ import (
 )
 
 type ProjectHandler struct {
-	userService service1.UserService
-	projectService service1.ProjectService
-	taskService service1.TaskService
+	userService service1.UserServiceInterface
+	projectService service1.ProjectServiceInterface
+	taskService service1.TaskServiceInterface
 }
 
-func NewProjectHandler(projectService *service1.ProjectService ,userService *service1.UserService, taskService *service1.TaskService)*ProjectHandler{
-	return &ProjectHandler{projectService: *projectService,userService: *userService,taskService: *taskService}
+func NewProjectHandler(projectService service1.ProjectServiceInterface ,userService service1.UserServiceInterface, taskService service1.TaskServiceInterface)*ProjectHandler{
+	return &ProjectHandler{projectService: projectService,userService: userService,taskService: taskService}
 }
 
 func(ph *ProjectHandler)ProjectHandler(w http.ResponseWriter,r * http.Request){
@@ -34,12 +34,6 @@ func(ph *ProjectHandler)ProjectHandler(w http.ResponseWriter,r * http.Request){
 	switch r.Method{
 	case http.MethodGet:
 		ph.GetMethods(w,r)
-    case http.MethodPost:
-		ph.CreateProject(w,r)
-	case http.MethodDelete:
-		ph.DeleteProject(w,r)
-	default:
-		return
 	}
 }
 func(ph *ProjectHandler)GetMethods(w http.ResponseWriter, r *http.Request){
@@ -107,7 +101,7 @@ func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request,path
         ProjectID:            projectId,
         CompletedTasks:       done,
         TotalTasks:           total,
-        CompletionPercentage: fmt.Sprintf("%v % ",percentDone),
+        CompletionPercentage: fmt.Sprintf("%v %v",percentDone,"%"),
     }
 
 	logger.Info("status get successfully")
@@ -142,12 +136,18 @@ func (ph *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
             response.ErrorResponse(w, http.StatusInternalServerError, "Failed to fetch projects", 1009)
             return
         }
+
+		if len(projects)==0{
+			logger.Error("No projects assigned ")
+            response.ErrorResponse(w, http.StatusNotFound, "No projects assigned ", 404)
+            return
+		}
 		logger.Info("Projects Retrived Successfully")
         response.SuccessResponse(w, projects,"Projects Retrived Successfully",http.StatusOK)
         return
     }
 
-    // Case 2: /v1/projects/{assigned_user_id} => return projects assigned to that user
+    
     assignedUserID := pathSegments[2]
     projects, err := ph.projectService.ViewAssignedProject(assignedUserID)
     if err != nil {
@@ -155,6 +155,12 @@ func (ph *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
         response.ErrorResponse(w, http.StatusInternalServerError, "Failed to fetch Assigned projects", 1010)
         return
     }
+
+    if len(projects)==0{
+			logger.Error("No projects assigned ")
+            response.ErrorResponse(w, http.StatusNotFound, "No projects assigned ", 404)
+            return
+	}
     logger.Info("Projects retrived successfully")
     response.SuccessResponse(w,projects,"Projects retrived successfully",http.StatusOK)
 	
@@ -212,6 +218,7 @@ func(ph *ProjectHandler)CreateProject(w http.ResponseWriter,r * http.Request){
 
 	err =ph.projectService.AddProject(*project)
 	if err != nil {
+		fmt.Printf("%v",err)
 		logger.Error("Error creating project")
 		response.ErrorResponse(w, http.StatusInternalServerError, "Error creating project", 1006)
 		return
@@ -238,10 +245,10 @@ func (ph *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) 
     }
 
     
-    path := strings.TrimPrefix(r.URL.Path, "/v1/projects/")
-    projectId := strings.Trim(path, "/")
+    
+    projectId := r.PathValue("project_id")
     if projectId == "" {
-        response.ErrorResponse(w, http.StatusBadRequest, "Project ID is required", 1001)
+        response.ErrorResponse(w, http.StatusBadRequest, "Project ID is required", 400)
         return
     }
 
@@ -249,7 +256,7 @@ func (ph *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) 
     err := ph.projectService.DeleteProject(projectId)
     if err != nil {
         logger.Error("error deleting project ")
-        response.ErrorResponse(w, http.StatusInternalServerError, "Failed to delete project",1010 )
+        response.ErrorResponse(w, http.StatusInternalServerError, "Failed to delete project",500)
         return
     }
 

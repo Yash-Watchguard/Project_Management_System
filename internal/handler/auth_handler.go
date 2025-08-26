@@ -24,10 +24,10 @@ var TimeParser = util.ParseDate
 
 var validate *validator.Validate
 type authHandler struct{
-	authService *service1.AuthService
-	userService * service1.UserService
+	authService service1.AuthServiceInterface
+	userService service1.UserServiceInterface
 }
-func NewAuthHandler(authService *service1.AuthService,userService *service1.UserService)*authHandler{
+func NewAuthHandler(authService service1.AuthServiceInterface,userService service1.UserServiceInterface)*authHandler{
 	return &authHandler{authService: authService,userService: userService}
 }
 func init(){
@@ -126,7 +126,7 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
     Password string `json:"password" validate:"required,min=8"`
 }
 
-	// first of all get the data form the request body
+	
 
     var err error
 
@@ -146,7 +146,7 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 
 	var user *user.User
 
-	user,err =au.authService.Repo.IsUserPresent(userInput.Name,userInput.Email,userInput.Password)
+	user,err =au.userService.IsUserPresent(userInput.Name,userInput.Email,userInput.Password)
 
 	if err!=nil{
 		logger.Error("Invalid email or password")

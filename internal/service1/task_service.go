@@ -12,12 +12,20 @@ import (
 	
 )
 
+type TaskServiceInterface interface{
+	ViewAllTask( projectId string) ([]task.Task, error)
+	CreateTask(task task.Task)error
+	DeleteTask(managerId string,taskId string)error
+	GetAssigenedTask(empId string)([]task.Task,error)
+	UpdateTaskStatus(userId string,taskId string,updatedStatus status.TaskStatus)error
+	ViewAllAssignedTasksInProject(projectId string,emp string)([]task.Task,error)
+}
 type TaskService struct{
 	taskRepo    interfaces.TaskRepo
 	
 }
 
-func NewTaskService(taskRepo interfaces.TaskRepo)*TaskService{
+func NewTaskService(taskRepo interfaces.TaskRepo)TaskServiceInterface{
 	return &TaskService{taskRepo: taskRepo}
 }
 

@@ -6,17 +6,18 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/handler"
 	"github.com/Yash-Watchguard/Tasknest/internal/middleware"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+  
 )
 
-func SetupRouter(authService service1.AuthService, userService service1.UserService, projectService service1.ProjectService,taskSeervice service1.TaskService,commentService service1.CommentService)*http.ServeMux{
+func SetupRouter(authService service1.AuthServiceInterface, userService service1.UserServiceInterface, projectService service1.ProjectServiceInterface,taskSeervice service1.TaskServiceInterface,commentService service1.CommentServiceInterface)*http.ServeMux{
    r:=http.NewServeMux()
 
 //    handlers
-   authHandler:=handler.NewAuthHandler(&authService,&userService)
-   userHandler:=handler.NewUserHandler(&userService)
-   projectHandler:=handler.NewProjectHandler(&projectService,&userService,&taskSeervice)
-   taskHandler:=handler.NewTaskHandler(&taskSeervice)
-   commentHandler:=handler.NewCommentHandler(&commentService,&userService)
+   authHandler:=handler.NewAuthHandler(authService,userService)
+   userHandler:=handler.NewUserHandler(userService)
+   projectHandler:=handler.NewProjectHandler(projectService,userService,taskSeervice)
+   taskHandler:=handler.NewTaskHandler(taskSeervice)
+   commentHandler:=handler.NewCommentHandler(commentService,userService)
 
 //    routes for the auth
 r.Handle("/v1/signup",http.HandlerFunc(authHandler.Signup))
@@ -27,6 +28,9 @@ r.Handle("/v1/users/", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.Us
 
 // routes for project
 r.Handle("/v1/projects/", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.ProjectHandler)))
+r.Handle("POST /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.CreateProject)))
+r.Handle("DELETE /v1/projects/{project_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.DeleteProject)))
+
 
 // routes for the tasks
 
