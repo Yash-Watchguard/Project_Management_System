@@ -21,6 +21,8 @@ var ValidEmail = util.ValidateEmail
 var ValidPhoneNumber = util.ValidateMobileNumber
 
 var TimeParser = util.ParseDate
+// allow overriding JWT generator in tests
+var GenerateJwt = util.GenerateJwt
 
 var validate *validator.Validate
 type authHandler struct{
@@ -54,12 +56,7 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 		return
 	}
 	
-	err := validate.Struct(newUser)
-	if err != nil {
-		logger.Error("Validation error")
-		response.ErrorResponse(w, http.StatusBadRequest, "Invalid request body", 1001)
-		return
-	}
+
     
 	flag :=au.userService.CheckUserExist(newUser.Email)
 	if flag{
@@ -72,7 +69,7 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 	
 	if err := util.ValidatePassword(newUser.Password); err != nil {
 		logger.Error("Invalid password")
-		response.ErrorResponse(w, http.StatusUnauthorized, "Invalid password", 1005)
+		response.ErrorResponse(w, http.StatusBadRequest, "Invalid password", 1005)
 		return
 	}
 
@@ -109,9 +106,6 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 	response.SuccessResponse(w, nil, "User created successfully", http.StatusCreated)
 
 }
-
-
-
 
 func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 	if r.Method != http.MethodGet {
@@ -158,7 +152,7 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 	// generate JWT token
     
 	var jwtTokenString string
-	jwtTokenString,err= util.GenerateJwt(user.Id,user.Role)
+	jwtTokenString, err = GenerateJwt(user.Id, user.Role)
 
 	if err!=nil{
 		logger.Error("Error generating the token")

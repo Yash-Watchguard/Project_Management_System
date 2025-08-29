@@ -4,7 +4,7 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
-
+//go:generate mockgen -source=auth_service.go -destination=../mocks/mock_authservice.go -package=mocks
 type AuthServiceInterface interface{
 	Signup(user *user.User) error
 	Login(name, email, password string) (*user.User, error)

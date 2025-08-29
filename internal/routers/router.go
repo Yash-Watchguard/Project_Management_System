@@ -12,27 +12,29 @@ import (
 func SetupRouter(authService service1.AuthServiceInterface, userService service1.UserServiceInterface, projectService service1.ProjectServiceInterface,taskSeervice service1.TaskServiceInterface,commentService service1.CommentServiceInterface)*http.ServeMux{
    r:=http.NewServeMux()
 
-//    handlers
+
    authHandler:=handler.NewAuthHandler(authService,userService)
    userHandler:=handler.NewUserHandler(userService)
    projectHandler:=handler.NewProjectHandler(projectService,userService,taskSeervice)
    taskHandler:=handler.NewTaskHandler(taskSeervice)
    commentHandler:=handler.NewCommentHandler(commentService,userService)
 
-//    routes for the auth
+
 r.Handle("/v1/signup",http.HandlerFunc(authHandler.Signup))
 r.Handle("/v1/login",http.HandlerFunc(authHandler.Login))
 
-//  routes for the userService
-r.Handle("/v1/users/", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.UsersHandler)))
 
-// routes for project
-r.Handle("/v1/projects/", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.ProjectHandler)))
+r.Handle("GET /v1/users/", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.Getuser)))
+r.Handle("DELETE /v1/users/{id}", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.DeleteUser)))
+r.Handle("PUT /v1/users/{id}/promote", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.PromoteEmployee)))
+r.Handle("PATCH /v1/users/{id}", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.UpdateUser)))
+
+
+r.Handle("GET /v1/projects/", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetMethods)))
+
 r.Handle("POST /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.CreateProject)))
 r.Handle("DELETE /v1/projects/{project_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.DeleteProject)))
 
-
-// routes for the tasks
 
 r.Handle("GET /v1/projects/{project_id}/tasks/",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.GetTask)))
 r.Handle("GET /v1/projects/tasks/{employee_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.AssignedTasks)))

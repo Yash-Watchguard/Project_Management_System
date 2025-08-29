@@ -11,8 +11,7 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
-
-
+//go:generate mockgen -source=user_service.go -destination=../mocks/mock_userservice.go -package=mocks
 type UserServiceInterface interface{
     ViewProfile( userId string) ([]user.User, error)
     ViewAllUsers() ([]user.User, error)

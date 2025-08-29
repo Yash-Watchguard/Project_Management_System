@@ -5,6 +5,7 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
 
+//go:generate mockgen -source=user_repo_interface.go -destination=../mocks/mock_userrepository.go -package=mocks
 type UserRepository interface {
 	SaveUser(user *user.User)error
 	IsUserPresent(name,email,password string)(*user.User,error)

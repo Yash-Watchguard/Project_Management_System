@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(os.Getenv("SecretKey"))
+var JwtSecret = []byte(os.Getenv("SecretKey"))
 
 func GenerateJwt(userId string, role roles.Role) (string, error) {
 	claims:= jwt.MapClaims{}
@@ -23,7 +23,7 @@ func GenerateJwt(userId string, role roles.Role) (string, error) {
 
 	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
 
-	return token.SignedString(jwtSecret)
+	return token.SignedString(JwtSecret)
 }
 
 func VarifyJwt(tokenString string)(*jwt.Token,error){
@@ -32,7 +32,7 @@ func VarifyJwt(tokenString string)(*jwt.Token,error){
 		if _,ok:=token.Method.(*jwt.SigningMethodHMAC);!ok{
 			return nil,errors.New("invalid signing method")
 		}
-		return jwtSecret,nil
+		return JwtSecret,nil
 	})
     
 	if err!=nil || !token.Valid{

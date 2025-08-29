@@ -839,3 +839,150 @@
 2025/08/26 16:59:07 app.go:37: Server stating on the Port 8080...
 2025/08/26 23:34:19 log.go:39: [INFO] Start the application....
 2025/08/26 23:34:19 app.go:37: Server stating on the Port 8080...
+2025/08/27 09:43:11 log.go:39: [INFO] Start the application....
+2025/08/27 09:43:11 app.go:37: Server stating on the Port 8080...
+2025/08/27 09:43:58 log.go:39: [INFO] Startted GET /v1/login from [::1]:54815
+2025/08/27 09:43:58 log.go:44: [ERROR] Invalid email or password
+2025/08/27 09:43:58 log.go:39: [INFO] Completed GET /v1/login in 60.4701ms
+2025/08/27 09:44:39 log.go:39: [INFO] Startted GET /v1/login from [::1]:54815
+2025/08/27 09:44:39 log.go:39: [INFO] token generated for userId:9f4649c0-abcc-45b5-93ff-f911ccdd1267
+2025/08/27 09:44:39 log.go:39: [INFO] Completed GET /v1/login in 102.092ms
+2025/08/27 09:50:01 log.go:39: [INFO] Startted GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:54845
+2025/08/27 09:50:01 log.go:44: [ERROR] unauthorized person wants to view profile
+2025/08/27 09:50:01 log.go:39: [INFO] Completed GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 543.4µs
+2025/08/27 09:50:23 log.go:39: [INFO] Startted GET /v1/login from [::1]:54845
+2025/08/27 09:50:23 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/27 09:50:23 log.go:39: [INFO] Completed GET /v1/login in 128.1123ms
+2025/08/27 09:50:41 log.go:39: [INFO] Startted GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:54845
+2025/08/27 09:50:41 log.go:39: [INFO] User retrieved successfully
+2025/08/27 09:50:41 log.go:39: [INFO] Completed GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 1.0576ms
+2025/08/27 14:34:16 log.go:39: [INFO] Start the application....
+2025/08/27 14:34:16 app.go:37: Server stating on the Port 8080...
+2025/08/27 14:34:16 app.go:42: listen tcp :8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2025/08/27 14:34:33 log.go:39: [INFO] Start the application....
+2025/08/27 14:34:33 app.go:37: Server stating on the Port 8080...
+2025/08/27 14:34:33 app.go:42: listen tcp :8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2025/08/27 14:34:54 log.go:39: [INFO] Start the application....
+2025/08/27 14:34:54 app.go:37: Server stating on the Port 8080...
+2025/08/27 14:35:00 log.go:39: [INFO] Startted GET /v1/login from [::1]:53453
+2025/08/27 14:35:00 log.go:44: [ERROR] Invalid Input
+2025/08/27 14:35:00 log.go:39: [INFO] Completed GET /v1/login in 529.4µs
+2025/08/27 14:35:35 log.go:39: [INFO] Startted GET /v1/login from [::1]:53453
+2025/08/27 14:35:35 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/27 14:35:35 log.go:39: [INFO] Completed GET /v1/login in 81.8867ms
+2025/08/27 14:36:02 log.go:39: [INFO] Startted GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:53453
+2025/08/27 14:36:02 log.go:39: [INFO] User retrieved successfully
+2025/08/27 14:36:02 log.go:39: [INFO] Completed GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 1.1451ms
+2025/08/27 14:37:11 log.go:39: [INFO] Startted GET /v1/login from [::1]:53483
+2025/08/27 14:37:11 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/27 14:37:11 log.go:39: [INFO] Completed GET /v1/login in 80.1543ms
+2025/08/27 14:37:23 log.go:39: [INFO] Startted GET /v1/login from [::1]:53483
+2025/08/27 14:37:23 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/27 14:37:23 log.go:39: [INFO] Completed GET /v1/login in 78.4042ms
+2025/08/27 14:38:30 log.go:39: [INFO] Start the application....
+2025/08/27 14:38:30 app.go:37: Server stating on the Port 8080...
+2025/08/27 14:38:42 log.go:39: [INFO] Startted GET /v1/login from [::1]:53507
+2025/08/27 14:38:42 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/27 14:38:42 log.go:39: [INFO] Completed GET /v1/login in 80.1645ms
+2025/08/28 09:32:26 log.go:39: [INFO] Start the application....
+2025/08/28 09:32:26 app.go:37: Server stating on the Port 8080...
+2025/08/28 09:32:52 log.go:39: [INFO] Startted GET /v1/login from [::1]:50269
+2025/08/28 09:32:52 log.go:39: [INFO] token generated for userId:4f46dd72-ae31-4df8-ab1b-a9deaee92815
+2025/08/28 09:32:52 log.go:39: [INFO] Completed GET /v1/login in 111.4896ms
+2025/08/28 09:33:15 log.go:39: [INFO] Startted GET /v1/login from [::1]:50269
+2025/08/28 09:33:15 log.go:39: [INFO] token generated for userId:9f4649c0-abcc-45b5-93ff-f911ccdd1267
+2025/08/28 09:33:15 log.go:39: [INFO] Completed GET /v1/login in 92.3638ms
+2025/08/28 09:34:12 log.go:39: [INFO] Startted GET /v1/users from [::1]:50269
+2025/08/28 09:34:12 log.go:39: [INFO] Completed GET /v1/users in 0s
+2025/08/28 09:34:12 log.go:39: [INFO] Startted GET /v1/users/ from [::1]:50269
+2025/08/28 09:34:12 log.go:39: [INFO] Completed GET /v1/users/ in 1.8291ms
+2025/08/28 09:34:27 log.go:39: [INFO] Startted GET /v1/users from [::1]:50269
+2025/08/28 09:34:27 log.go:39: [INFO] Completed GET /v1/users in 0s
+2025/08/28 09:34:27 log.go:39: [INFO] Startted GET /v1/users/ from [::1]:50269
+2025/08/28 09:34:27 log.go:44: [ERROR] unauthorized person wants to view profile
+2025/08/28 09:34:27 log.go:39: [INFO] Completed GET /v1/users/ in 0s
+2025/08/28 09:34:44 log.go:39: [INFO] Startted GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:50269
+2025/08/28 09:34:44 log.go:44: [ERROR] unauthorized person wants to view profile
+2025/08/28 09:34:44 log.go:39: [INFO] Completed GET /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 1.7079ms
+2025/08/28 09:35:52 log.go:39: [INFO] Startted GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50340
+2025/08/28 09:35:52 log.go:39: [INFO] User retrieved successfully
+2025/08/28 09:35:52 log.go:39: [INFO] Completed GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 1.6889ms
+2025/08/28 09:36:10 log.go:39: [INFO] Startted GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50340
+2025/08/28 09:36:10 log.go:39: [INFO] User retrieved successfully
+2025/08/28 09:36:10 log.go:39: [INFO] Completed GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 1.0521ms
+2025/08/28 09:36:17 log.go:39: [INFO] Startted GET /v1/users/ from [::1]:50340
+2025/08/28 09:36:17 log.go:44: [ERROR] unauthorized person wants to view profile
+2025/08/28 09:36:17 log.go:39: [INFO] Completed GET /v1/users/ in 0s
+2025/08/28 09:38:31 log.go:39: [INFO] Startted PATCH /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:50361
+2025/08/28 09:38:31 log.go:39: [INFO] Completed PATCH /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 0s
+2025/08/28 09:38:44 log.go:39: [INFO] Startted PATCH /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 from [::1]:50361
+2025/08/28 09:38:44 log.go:44: [ERROR] Unauthorized update attempt
+2025/08/28 09:38:44 log.go:39: [INFO] Completed PATCH /v1/users/4f46dd72-ae31-4df8-ab1b-a9deaee92815 in 4.1358ms
+2025/08/28 09:38:57 log.go:39: [INFO] Startted PATCH /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50361
+2025/08/28 09:38:57 log.go:39: [INFO] User updated successfully
+2025/08/28 09:38:57 log.go:39: [INFO] Completed PATCH /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 24.1826ms
+2025/08/28 09:39:09 log.go:39: [INFO] Startted PATCH /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50361
+2025/08/28 09:39:09 log.go:39: [INFO] User updated successfully
+2025/08/28 09:39:09 log.go:39: [INFO] Completed PATCH /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 15.5938ms
+2025/08/28 09:39:21 log.go:39: [INFO] Startted GET /v1/projects/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50361
+2025/08/28 09:39:21 log.go:39: [INFO] Completed GET /v1/projects/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 5.8981ms
+2025/08/28 09:39:36 log.go:39: [INFO] Startted GET /v1/projects/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:50361
+2025/08/28 09:39:36 log.go:39: [INFO] Projects retrived successfully
+2025/08/28 09:39:36 log.go:39: [INFO] Completed GET /v1/projects/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 6.7804ms
+2025/08/28 09:39:56 log.go:39: [INFO] Startted GET /v1/projects from [::1]:50361
+2025/08/28 09:39:56 log.go:39: [INFO] Completed GET /v1/projects in 0s
+2025/08/28 09:39:56 log.go:39: [INFO] Startted GET /v1/projects/ from [::1]:50361
+2025/08/28 09:39:56 log.go:39: [INFO] Completed GET /v1/projects/ in 0s
+2025/08/28 09:40:11 log.go:39: [INFO] Startted GET /v1/projects from [::1]:50361
+2025/08/28 09:40:11 log.go:39: [INFO] Completed GET /v1/projects in 0s
+2025/08/28 09:40:11 log.go:39: [INFO] Startted GET /v1/projects/ from [::1]:50361
+2025/08/28 09:40:11 log.go:44: [ERROR] unauthorized person wants to view all projects
+2025/08/28 09:40:11 log.go:39: [INFO] Completed GET /v1/projects/ in 0s
+2025/08/28 09:40:34 log.go:39: [INFO] Startted DELETE /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349 from [::1]:50361
+2025/08/28 09:40:34 log.go:44: [ERROR] unauthorized to delete projects
+2025/08/28 09:40:34 log.go:39: [INFO] Completed DELETE /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349 in 0s
+2025/08/28 09:43:15 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks from [::1]:50405
+2025/08/28 09:43:15 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks in 0s
+2025/08/28 09:43:15 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ from [::1]:50405
+2025/08/28 09:43:15 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ in 0s
+2025/08/28 09:43:30 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks from [::1]:50405
+2025/08/28 09:43:30 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks in 0s
+2025/08/28 09:43:30 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ from [::1]:50405
+2025/08/28 09:43:30 log.go:39: [INFO] Tasks retrived Successfully
+2025/08/28 09:43:30 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ in 7.8635ms
+2025/08/28 09:44:25 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50405
+2025/08/28 09:44:25 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 316.6µs
+2025/08/28 09:44:40 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50405
+2025/08/28 09:44:40 log.go:44: [ERROR] failed to create task
+2025/08/28 09:44:40 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 23.8444ms
+2025/08/28 09:54:01 log.go:39: [INFO] Start the application....
+2025/08/28 09:54:01 app.go:37: Server stating on the Port 8080...
+2025/08/28 09:54:12 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50687
+2025/08/28 09:54:12 log.go:44: [ERROR] failed to create task
+2025/08/28 09:54:12 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 7.2525ms
+2025/08/28 09:54:14 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50687
+2025/08/28 09:54:14 log.go:44: [ERROR] failed to create task
+2025/08/28 09:54:14 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 3.5753ms
+2025/08/28 09:58:07 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50722
+2025/08/28 09:58:07 log.go:44: [ERROR] failed to create task
+2025/08/28 09:58:07 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 5.5609ms
+2025/08/28 09:58:24 log.go:39: [INFO] Start the application....
+2025/08/28 09:58:24 app.go:37: Server stating on the Port 8080...
+2025/08/28 09:59:44 log.go:39: [INFO] Startted POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks from [::1]:50743
+2025/08/28 09:59:44 log.go:44: [ERROR] failed to create task
+2025/08/28 09:59:44 log.go:39: [INFO] Completed POST /v1/projects/406824a5-b4ac-44b4-ae29-8ec2b4a7f349/tasks in 7.3745ms
+2025/08/28 12:57:47 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks from [::1]:56590
+2025/08/28 12:57:47 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks in 611.3µs
+2025/08/28 12:57:47 log.go:39: [INFO] Startted GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ from [::1]:56590
+2025/08/28 12:57:47 log.go:39: [INFO] Tasks retrived Successfully
+2025/08/28 12:57:47 log.go:39: [INFO] Completed GET /v1/projects/adfb2b16-0fc4-4062-a11a-e9d8f05a7c5c/tasks/ in 11.6825ms
+2025/08/28 12:58:24 log.go:39: [INFO] Startted DELETE /v1/users/e06f9cc5-823f-4f48-ab59-82d943fb5d5a from [::1]:56590
+2025/08/28 12:58:24 log.go:39: [INFO] Completed DELETE /v1/users/e06f9cc5-823f-4f48-ab59-82d943fb5d5a in 0s
+2025/08/28 20:50:18 log.go:39: [INFO] Start the application....
+2025/08/28 20:50:18 app.go:37: Server stating on the Port 8080...
+2025/08/28 20:51:19 log.go:39: [INFO] Startted GET /v1/login from [::1]:63933
+2025/08/28 20:51:19 log.go:39: [INFO] token generated for userId:9f4649c0-abcc-45b5-93ff-f911ccdd1267
+2025/08/28 20:51:19 log.go:39: [INFO] Completed GET /v1/login in 165.9687ms
+2025/08/28 20:51:30 log.go:39: [INFO] Startted GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 from [::1]:63933
+2025/08/28 20:51:30 log.go:39: [INFO] User retrieved successfully
+2025/08/28 20:51:30 log.go:39: [INFO] Completed GET /v1/users/9f4649c0-abcc-45b5-93ff-f911ccdd1267 in 506.8µs

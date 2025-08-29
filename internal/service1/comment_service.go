@@ -9,7 +9,7 @@ import (
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	
 )
-
+//go:generate mockgen -source=comment_service.go -destination=../mocks/mock_commentservice.go -package=mocks
 type CommentServiceInterface interface{
 	ViewAllComment(taskId string) ([]comment.Comment, error)
 	UpdateComment(ctx context.Context, updatedComment comment.Comment) error

@@ -2,7 +2,7 @@ package interfaces
 import(
 "github.com/Yash-Watchguard/Tasknest/internal/model/comment"
 )
-
+//go:generate mockgen -source=comment.go -destination=../mocks/mock_commentrepository.go -package=mocks
 type CommentRepo interface {
 	ViewAllComments(projectId string) ([]comment.Comment,error)
 	UpdateComment(updatedComment comment.Comment)error

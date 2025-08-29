@@ -22,27 +22,8 @@ type UserHandler struct {
 func NewUserHandler(userService service1.UserServiceInterface) *UserHandler {
 	return &UserHandler{userService: userService}
 }
-func (uh *UserHandler) UsersHandler(w http.ResponseWriter, r *http.Request) {
-    switch r.Method {
-    case http.MethodGet:
-        uh.Getuser(w, r)
-    case http.MethodDelete:
-        uh.DeleteUser(w, r)
-	case http.MethodPut:
-        uh.PromoteEmployee(w,r)
-    case http.MethodPatch:
-		uh.UpdateUser(w,r)
-	default:
-		logger.Error("Invalid HTTP method")
-		response.ErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", 1000)
-    }
 
-
-}
 func(uh *UserHandler)Getuser(w http.ResponseWriter,r *http.Request){
-
-   
-
     ctx := r.Context()
     userID, ok := ctx.Value(ContextKey.UserId).(string)
     if !ok {
@@ -98,20 +79,32 @@ func(uh *UserHandler)Getuser(w http.ResponseWriter,r *http.Request){
 }
 
 func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodDelete {
-        logger.Error("Invalid HTTP method")
-        response.ErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", 1000)
-        return
-    }
-
-    ctx := r.Context()
-
-    path := strings.TrimPrefix(r.URL.Path, "/v1/users/")
-    id := strings.Trim(path, "/")
-    userId := ctx.Value(ContextKey.UserId).(string)
-    role := ctx.Value(ContextKey.UserRole).(roles.Role)
-
+   
     
+
+    id:= r.PathValue("id")
+    if id == "" {
+    logger.Error("id parameter missing in request path")
+    response.ErrorResponse(w, http.StatusBadRequest, "id parameter is required", 1003)
+    return
+    } 
+
+    uidVal := r.Context().Value(ContextKey.UserId)
+if uidVal == nil {
+    logger.Error("user id not found")
+    response.ErrorResponse(w, http.StatusUnauthorized, "user id not found", 1001)
+    return
+}
+userId := uidVal.(string)
+
+roleVal := r.Context().Value(ContextKey.UserRole)
+if roleVal == nil {
+    logger.Error("user role not found")
+    response.ErrorResponse(w, http.StatusUnauthorized, "user role not found", 1002)
+    return
+}
+role := roleVal.(roles.Role)
+
     if userId != id && role != roles.Admin {
         logger.Error("Unauthorized delete attempt")
         response.ErrorResponse(w, http.StatusForbidden, "Access denied", 1008)
@@ -138,18 +131,8 @@ func(uh *UserHandler)PromoteEmployee(w http.ResponseWriter,r *http.Request){
 		logger.Error("Only admins can promote users")
         response.ErrorResponse(w, http.StatusForbidden, "Only admins can promote users", 1008)
         return
-    }
-
-	path :=strings.TrimPrefix(r.URL.Path, "/v1/users/")
-
-	parts:=strings.Split(path,"/")
-
-	if len(parts)!=2 || parts[1]!="promote"{
-		logger.Error("Invalid path")
-		response.ErrorResponse(w, http.StatusBadRequest, "Invalid path", 1001)
-        return
-	}
-	id := parts[0]
+    }	
+	id := r.PathValue("id")
 
 	err:=uh.userService.PromoteEmployee(id)
 
@@ -168,8 +151,8 @@ func(uh *UserHandler)UpdateUser(w http.ResponseWriter,r * http.Request){
     userId := ctx.Value(ContextKey.UserId).(string)
     role := ctx.Value(ContextKey.UserRole).(roles.Role)
 
-	path := strings.TrimPrefix(r.URL.Path, "/v1/users/")
-    id := strings.Trim(path, "/")
+	
+    id := r.PathValue("id")
 
 	if userId != id && role != roles.Admin {
         logger.Error("Unauthorized update attempt")

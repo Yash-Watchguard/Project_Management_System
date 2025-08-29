@@ -3,7 +3,7 @@ package interfaces
 import (
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
 )
-
+//go:generate mockgen -source=project.go -destination=../mocks/mock_projectrepository.go -package=mocks
 type ProjectRepository interface {
 	AddProject(newProject project.Project)error
 	ViewAllProjects()([]project.Project,error)

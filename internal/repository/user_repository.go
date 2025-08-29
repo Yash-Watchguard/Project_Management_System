@@ -15,11 +15,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserRepo struct{
-	db *sql.DB
+type UserRepoInterface interface{
+	 Exec(query string, args ...any) (sql.Result, error)
+	 Query(query string, args ...any) (*sql.Rows, error)
+	 QueryRow(query string, args ...any) *sql.Row
 }
 
-func NewUserRepo(db *sql.DB) *UserRepo {
+type UserRepo struct{
+	db UserRepoInterface
+}
+
+func NewUserRepo(db UserRepoInterface) *UserRepo {
 	return &UserRepo{db: db}
 }
 

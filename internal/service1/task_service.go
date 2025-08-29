@@ -12,6 +12,7 @@ import (
 	
 )
 
+//go:generate mockgen -source=task_service.go -destination=../mocks/mock_taskservice.go -package=mocks
 type TaskServiceInterface interface{
 	ViewAllTask( projectId string) ([]task.Task, error)
 	CreateTask(task task.Task)error

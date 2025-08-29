@@ -29,13 +29,7 @@ func NewProjectHandler(projectService service1.ProjectServiceInterface ,userServ
 	return &ProjectHandler{projectService: projectService,userService: userService,taskService: taskService}
 }
 
-func(ph *ProjectHandler)ProjectHandler(w http.ResponseWriter,r * http.Request){
 
-	switch r.Method{
-	case http.MethodGet:
-		ph.GetMethods(w,r)
-	}
-}
 func(ph *ProjectHandler)GetMethods(w http.ResponseWriter, r *http.Request){
 	path := strings.TrimPrefix(r.URL.Path, "/v1/projects/")
 
@@ -201,9 +195,9 @@ func(ph *ProjectHandler)CreateProject(w http.ResponseWriter,r * http.Request){
 		response.ErrorResponse(w, http.StatusBadRequest, "Invalid request body", 1001)
 		return
 	}
-    
+
 	projectId := GenerateUUID()
-    var actualdeadline time.Time
+	var actualdeadline time.Time
 
 	actualdeadline,_ = TimeParser(projectReq.Deadline)
 

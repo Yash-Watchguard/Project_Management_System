@@ -1,5 +1,6 @@
 package Priority
 import ("errors")
+
 func PriorityParser(input string) (Priority, error) {
 	switch input {
 	case "Low":
