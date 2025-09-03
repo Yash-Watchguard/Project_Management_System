@@ -182,13 +182,19 @@ func (ur *UserRepo) GetAllManager()([]user.User, error) {
 }
 
 func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{}) error {
+
+	query:=config.SelectQuery("users",[]string{"id"},"id")
+	_,err:=ur.db.Query(query,userId)
+	if err!=nil{
+		return errors.New("invalid id")
+	}
     allowedFields := map[string]bool{
         "name":         true,
         "email":        true,
         "password":     true,
         "phone_number": true,
+		"status"      : true,
     }
-
     setClauses := []string{}
     args := []interface{}{}
 
@@ -204,7 +210,7 @@ func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{})
         return errors.New("no valid fields to update")
     }
 
-    query := fmt.Sprintf("UPDATE users SET %s WHERE id = ?", strings.Join(setClauses, ", "))
+    query = fmt.Sprintf("UPDATE users SET %s WHERE id = ?", strings.Join(setClauses, ", "))
     args = append(args, userId)
 
     result, err := ur.db.Exec(query, args...)

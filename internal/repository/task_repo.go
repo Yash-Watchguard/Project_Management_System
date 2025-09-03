@@ -152,9 +152,9 @@ func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
 func (taskRepo *TaskRepo) UpdateTaskStatus(empId string, taskId string, updatedStatus status.TaskStatus) error {
 	query := `UPDATE tasks 
               SET taskstatus = ? 
-              WHERE task_id = ? AND assignesto = ?`
+              WHERE task_id = ?`
 
-	res, err := taskRepo.db.Exec(query, updatedStatus, taskId, empId)
+	res, err := taskRepo.db.Exec(query, updatedStatus, taskId)
 	if err != nil {
 		return err
 	}

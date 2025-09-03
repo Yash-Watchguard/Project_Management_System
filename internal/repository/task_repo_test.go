@@ -455,8 +455,8 @@ func TestUpdateTaskStatus(t *testing.T) {
 				mock.ExpectExec(regexp.QuoteMeta(
 					`UPDATE tasks 
               		 SET taskstatus = ? 
-              		 WHERE task_id = ? AND assignesto = ?`)).
-					WithArgs(st, taskID, empID).
+              		 WHERE task_id = ?`)).
+					WithArgs(st, taskID).
 					WillReturnResult(sqlmock.NewResult(0, 1)) // 1 row affected
 			},
 			expectError: "",
@@ -470,8 +470,8 @@ func TestUpdateTaskStatus(t *testing.T) {
 				mock.ExpectExec(regexp.QuoteMeta(
 					`UPDATE tasks 
               		 SET taskstatus = ? 
-              		 WHERE task_id = ? AND assignesto = ?`)).
-					WithArgs(st, taskID, empID).
+              		 WHERE task_id = ?`)).
+					WithArgs(st, taskID).
 					WillReturnError(errors.New("db exec error"))
 			},
 			expectError: "db exec error",
@@ -485,8 +485,8 @@ func TestUpdateTaskStatus(t *testing.T) {
 				mock.ExpectExec(regexp.QuoteMeta(
 					`UPDATE tasks 
               		 SET taskstatus = ? 
-              		 WHERE task_id = ? AND assignesto = ?`)).
-					WithArgs(st, taskID, empID).
+              		 WHERE task_id = ?`)).
+					WithArgs(st, taskID).
 					WillReturnResult(sqlmock.NewErrorResult(errors.New("rows affected error")))
 			},
 			expectError: "rows affected error",
@@ -500,8 +500,8 @@ func TestUpdateTaskStatus(t *testing.T) {
 				mock.ExpectExec(regexp.QuoteMeta(
 					`UPDATE tasks 
               		 SET taskstatus = ? 
-              		 WHERE task_id = ? AND assignesto = ?`)).
-					WithArgs(st, taskID, empID).
+              		 WHERE task_id = ?`)).
+					WithArgs(st, taskID).
 					WillReturnResult(sqlmock.NewResult(0, 0)) // 0 rows affected
 			},
 			expectError: "task not assigned",
@@ -585,50 +585,7 @@ func TestViewAllAssignedTasksInProject(t *testing.T) {
 			expectTasks: 0,
 			expectError: "conn",
 		},
-		// {
-		// 	name:      "scan error",
-		// 	projectID: "proj3",
-		// 	empID:     "emp3",
-		// 	mockSetup: func(mock sqlmock.Sqlmock, projectID, empID string) {
-		// 		rows := sqlmock.NewRows([]string{
-		// 			"task_id", "title", "description", "acceptance_criteria", "deadline",
-		// 			"taskpriority", "taskstatus", "assignesto", "projectid", "createdby",
-		// 		}).AddRow(
-		// 			1, // wrong type, should be string
-		// 			"Task X", "Desc X", "Crit X", "2025-09-10",
-		// 			Priority.Low, status.Done, empID, projectID, "admin",
-		// 		)
-
-		// 		mock.ExpectQuery(regexp.QuoteMeta(
-		// 			`SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby 
-        //       		 FROM tasks 
-        //       		 WHERE projectid = ? AND assignesto = ?`)).
-		// 			WithArgs(projectID, empID).
-		// 			WillReturnRows(rows)
-		// 	},
-		// 	expectTasks: 0,
-		// 	expectError: "converting", // type conversion fails
-		// },
-	// 	{
-	// 		name:      "rows iteration error",
-	// 		projectID: "proj4",
-	// 		empID:     "emp4",
-	// 		mockSetup: func(mock sqlmock.Sqlmock, projectID, empID string) {
-	// 			rows := sqlmock.NewRows([]string{
-	// 				"task_id", "title", "description", "acceptance_criteria", "deadline",
-	// 				"taskpriority", "taskstatus", "assignesto", "projectid", "createdby",
-	// 			}).RowError(0, sql.ErrNoRows)
-
-	// 			mock.ExpectQuery(regexp.QuoteMeta(
-	// 				`SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby 
-    //           		 FROM tasks 
-    //           		 WHERE projectid = ? AND assignesto = ?`)).
-	// 				WithArgs(projectID, empID).
-	// 				WillReturnRows(rows)
-	// 		},
-	// 		expectTasks: 0,
-	// 		expectError: "no rows",
-	// 	},
+		
 	}
 
 	for _, tt := range tests {

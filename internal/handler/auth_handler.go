@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	
 
 	"github.com/Yash-Watchguard/Tasknest/internal/logger"
+	"github.com/Yash-Watchguard/Tasknest/internal/model"
 	"github.com/Yash-Watchguard/Tasknest/internal/response"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
 	"github.com/go-playground/validator/v10"
@@ -85,7 +86,7 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 
 	// save the user
 
-	user:=&user.User{
+	NewUser:=&user.User{
 		Id: GenerateUUID(),
         Name: newUser.Name,
 		Email: newUser.Email,
@@ -94,16 +95,23 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 		PhoneNumber: newUser.PhoneNumber,
 	}
 
-	err =au.authService.Signup(user)
+	err =au.authService.Signup(NewUser)
 
 	if err != nil {
 		logger.Error("Error creating user")
 		response.ErrorResponse(w, http.StatusInternalServerError, "Error creating user", 1006)
 		return
 	}
+    userDto:=model.UserDto{
+		Id: NewUser.Id,
+		Name: NewUser.Name,
+		Email: NewUser.Email,
+		PhoneNumber: NewUser.PhoneNumber,
+		Role: roles.RoleParser(NewUser.Role),
+	}
 
 	logger.Info("User created sucessfully")
-	response.SuccessResponse(w, nil, "User created successfully", http.StatusCreated)
+	response.SuccessResponse(w, userDto, "User created successfully", http.StatusCreated)
 
 }
 
@@ -138,9 +146,11 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 		return
 	}
 
-	var user *user.User
+	var person *user.User
+       
+	person,err =au.userService.IsUserPresent(userInput.Name,userInput.Email,userInput.Password)
 
-	user,err =au.userService.IsUserPresent(userInput.Name,userInput.Email,userInput.Password)
+	person.Status=user.Active
 
 	if err!=nil{
 		logger.Error("Invalid email or password")
@@ -152,7 +162,7 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 	// generate JWT token
     
 	var jwtTokenString string
-	jwtTokenString, err = GenerateJwt(user.Id, user.Role)
+	jwtTokenString, err = GenerateJwt(person.Id, person.Role)
 
 	if err!=nil{
 		logger.Error("Error generating the token")
@@ -162,8 +172,8 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 	}
 
 	// return the jwt token as json
-	logger.Info(fmt.Sprintf("token generated for userId:%v",user.Id))
-	response.SuccessResponse(w,map[string]interface{}{"token":jwtTokenString},"Token generated Successfully",http.StatusCreated)
+	logger.Info(fmt.Sprintf("token generated for userId:%v",person.Id))
+	response.SuccessResponse(w,map[string]interface{}{"token":jwtTokenString,"UserId":person.Id},"Token generated Successfully",http.StatusCreated)
 
 }
 

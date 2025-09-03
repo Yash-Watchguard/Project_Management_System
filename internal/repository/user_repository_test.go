@@ -741,7 +741,7 @@ func TestUpdateProfile(t *testing.T) {
 		name        string
 		userId      string
 		updates     map[string]interface{}
-		setupMock   func(mock sqlmock.Sqlmock)
+		setupMock   func(mock sqlmock.Sqlmock, userId string)
 		expectError bool
 		errorMsg    string
 	}{
@@ -752,9 +752,15 @@ func TestUpdateProfile(t *testing.T) {
 				"name":  "New Name",
 				"email": "new@example.com",
 			},
-			setupMock: func(mock sqlmock.Sqlmock) {
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				// SELECT check
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+
+				// UPDATE check
 				mock.ExpectExec("UPDATE users SET name = \\?, email = \\? WHERE id = \\?").
-					WithArgs("New Name", "new@example.com", "u1").
+					WithArgs("New Name", "new@example.com", userId).
 					WillReturnResult(sqlmock.NewResult(0, 1)) // 1 row affected
 			},
 			expectError: false,
@@ -765,7 +771,11 @@ func TestUpdateProfile(t *testing.T) {
 			updates: map[string]interface{}{
 				"invalid_field": "oops",
 			},
-			setupMock:   func(mock sqlmock.Sqlmock) {}, // no DB call expected
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+			},
 			expectError: true,
 			errorMsg:    "invalid field update: invalid_field",
 		},
@@ -773,7 +783,11 @@ func TestUpdateProfile(t *testing.T) {
 			name:        "failure - no updates",
 			userId:      "u3",
 			updates:     map[string]interface{}{},
-			setupMock:   func(mock sqlmock.Sqlmock) {}, // no DB call expected
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+			},
 			expectError: true,
 			errorMsg:    "no valid fields to update",
 		},
@@ -783,9 +797,13 @@ func TestUpdateProfile(t *testing.T) {
 			updates: map[string]interface{}{
 				"email": "dup@example.com",
 			},
-			setupMock: func(mock sqlmock.Sqlmock) {
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+
 				mock.ExpectExec("UPDATE users SET email = \\? WHERE id = \\?").
-					WithArgs("dup@example.com", "u4").
+					WithArgs("dup@example.com", userId).
 					WillReturnError(errors.New("Duplicate entry 'dup@example.com' for key 'email'"))
 			},
 			expectError: true,
@@ -797,9 +815,13 @@ func TestUpdateProfile(t *testing.T) {
 			updates: map[string]interface{}{
 				"phone_number": "1234567890",
 			},
-			setupMock: func(mock sqlmock.Sqlmock) {
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+
 				mock.ExpectExec("UPDATE users SET phone_number = \\? WHERE id = \\?").
-					WithArgs("1234567890", "u5").
+					WithArgs("1234567890", userId).
 					WillReturnError(errors.New("Duplicate entry '1234567890' for key 'phone_number'"))
 			},
 			expectError: true,
@@ -811,9 +833,13 @@ func TestUpdateProfile(t *testing.T) {
 			updates: map[string]interface{}{
 				"name": "NotFound",
 			},
-			setupMock: func(mock sqlmock.Sqlmock) {
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+
 				mock.ExpectExec("UPDATE users SET name = \\? WHERE id = \\?").
-					WithArgs("NotFound", "u6").
+					WithArgs("NotFound", userId).
 					WillReturnResult(sqlmock.NewResult(0, 0)) // 0 rows affected
 			},
 			expectError: true,
@@ -825,9 +851,13 @@ func TestUpdateProfile(t *testing.T) {
 			updates: map[string]interface{}{
 				"name": "Broken",
 			},
-			setupMock: func(mock sqlmock.Sqlmock) {
+			setupMock: func(mock sqlmock.Sqlmock, userId string) {
+				mock.ExpectQuery("SELECT id FROM users WHERE id = \\?").
+					WithArgs(userId).
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
+
 				mock.ExpectExec("UPDATE users SET name = \\? WHERE id = \\?").
-					WithArgs("Broken", "u7").
+					WithArgs("Broken", userId).
 					WillReturnError(errors.New("db failure"))
 			},
 			expectError: true,
@@ -845,7 +875,7 @@ func TestUpdateProfile(t *testing.T) {
 
 			repo := NewUserRepo(db)
 
-			tt.setupMock(mock)
+			tt.setupMock(mock, tt.userId)
 
 			err = repo.UpdateProfile(tt.userId, tt.updates)
 
@@ -864,6 +894,7 @@ func TestUpdateProfile(t *testing.T) {
 		})
 	}
 }
+
 
 func TestGetAllManager(t *testing.T) {
 	tests := []struct {

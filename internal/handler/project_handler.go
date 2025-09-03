@@ -5,18 +5,20 @@ import (
 	"net/http"
 	"strings"
 	"time"
-     "github.com/Yash-Watchguard/Tasknest/internal/logger"
-	 "github.com/Yash-Watchguard/Tasknest/internal/response"
+
+	"github.com/Yash-Watchguard/Tasknest/internal/logger"
+	
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+	"github.com/Yash-Watchguard/Tasknest/internal/response"
 
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
-	
-    "encoding/json"
-	
+
+	"encoding/json"
+
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-	
 )
 
 type ProjectHandler struct {
@@ -29,24 +31,11 @@ func NewProjectHandler(projectService service1.ProjectServiceInterface ,userServ
 	return &ProjectHandler{projectService: projectService,userService: userService,taskService: taskService}
 }
 
+func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request){
+     projectId:=r.PathValue("project_id")
 
-func(ph *ProjectHandler)GetMethods(w http.ResponseWriter, r *http.Request){
-	path := strings.TrimPrefix(r.URL.Path, "/v1/projects/")
-
-	pathSegments := strings.Split(strings.Trim(path, "/"), "/")
-
-	switch len(pathSegments){
-	case 0,1:
-		ph.GetProjects(w,r)
-	case 2:
-		ph.ProjectStatus(w,r,pathSegments)
-	}
-}
-func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request,pathSegments []string){
-     projectId:=pathSegments[0]
-	 if(pathSegments[1]!="status"){
-		logger.Error("Invalid path")
-		response.ErrorResponse(w,http.StatusNotFound,"Invalid path",404)
+	 if len(projectId)!=36{
+		response.ErrorResponse(w, http.StatusBadRequest, "Invalid Project Id", 1000)
 		return
 	 }
 
@@ -63,13 +52,16 @@ func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request,path
 	if err!=nil{
 		logger.Error("error in fatching tasks")
 		response.ErrorResponse(w,http.StatusInternalServerError,"Error fatching the tasks",1010)
+		return
 	}
     //   calculate the project status on the basis of the tasks and task  status
      
     
-	if len(projectTasks) == 0 {
-		logger.Error("No task found")
-	}
+	// if len(projectTasks) == 0 {
+	// 	logger.Error("No task found")
+	// 	response.ErrorResponse(w,http.StatusNotFound,"No Task",1000)
+	// 	return
+	// }
     
 	total := len(projectTasks)
 	done := 0
@@ -133,7 +125,7 @@ func (ph *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 		if len(projects)==0{
 			logger.Error("No projects assigned ")
-            response.ErrorResponse(w, http.StatusNotFound, "No projects assigned ", 404)
+            response.ErrorResponse(w, http.StatusNotFound, "No projects assig", 404)
             return
 		}
 		logger.Info("Projects Retrived Successfully")
@@ -182,13 +174,21 @@ func(ph *ProjectHandler)CreateProject(w http.ResponseWriter,r * http.Request){
         Deadline          string `json:"deadline"` 
         AssignedManagerID string `json:"assignedManagerId"`
 	}
-
+  
 
 	if err := json.NewDecoder(r.Body).Decode(&projectReq); err != nil {
 		logger.Error("Invalid input")
 		response.ErrorResponse(w, http.StatusBadRequest, "Invalid input", 1001)
 		return
 	}
+
+	ManagerProfile,_:=ph.userService.ViewProfile(projectReq.AssignedManagerID)
+
+	if ManagerProfile[0].Status==user.InActive{
+		logger.Error("Manger is not available of for project assignement")
+		response.ErrorResponse(w,http.StatusBadRequest,"Manager is InActive",1000)
+	}
+
 	err := validate.Struct(projectReq)
 	if err != nil {
 		logger.Error("Validation error")
@@ -219,7 +219,7 @@ func(ph *ProjectHandler)CreateProject(w http.ResponseWriter,r * http.Request){
 	}
 
 	logger.Info("Project created sucessfully")
-	response.SuccessResponse(w, nil, "Project created successfully", http.StatusCreated)
+	response.SuccessResponse(w, project, "Project created successfully", http.StatusCreated)
 }
 
 func (ph *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {

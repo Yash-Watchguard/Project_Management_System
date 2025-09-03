@@ -71,11 +71,13 @@ func TestUserService_DeleteUser(t *testing.T) {
 
 	mockRepo := mocks.NewMockUserRepository(ctrl)
 	userService := NewUserService(mockRepo)
+	mp:=make(map[string]interface{})
+	mp["status"]="InActive"
 
 	userID := "123"
 
 	// Expectation: repo should be called with the given userID
-	mockRepo.EXPECT().DeleteUserById(userID).Return(nil)
+	mockRepo.EXPECT().UpdateProfile(userID,mp).Return(nil)
 
 	// Call service
 	err := userService.DeleteUser(userID)

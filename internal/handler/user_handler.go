@@ -3,16 +3,16 @@ package handler
 import (
 	"net/http"
 
-	"strings"
 	"encoding/json"
+	"strings"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/logger"
+	"github.com/Yash-Watchguard/Tasknest/internal/model"
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/response"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-	
 )
 
 type UserHandler struct {
@@ -56,9 +56,16 @@ func(uh *UserHandler)Getuser(w http.ResponseWriter,r *http.Request){
             response.ErrorResponse(w, http.StatusNotFound, "User not found", 1004)
             return
         }
-        
+        userDto :=model.UserDto{
+            Id: user[0].Id,
+            Name: user[0].Name,
+            Email: user[0].Email,
+            PhoneNumber: user[0].PhoneNumber,
+            Role: roles.RoleParser(user[0].Role),
+
+        }
 		logger.Info("User retrieved successfully")
-        response.SuccessResponse(w, user, "User retrieved successfully", http.StatusOK)
+        response.SuccessResponse(w, userDto, "User retrieved successfully", http.StatusOK)
         return
     }
 
@@ -74,14 +81,24 @@ func(uh *UserHandler)Getuser(w http.ResponseWriter,r *http.Request){
             return
         }
 
+        var userDto []model.UserDto
+        for _,person:=range users{
+            p1:=model.UserDto{
+                Id: person.Id,
+                Name: person.Name,
+                Email: person.Email,
+                PhoneNumber: person.PhoneNumber,
+                Role: roles.RoleParser(person.Role),
+            }
+            userDto=append(userDto,p1)
+        }
+
 		logger.Info("users retrived successfully")
-		response.SuccessResponse(w,users,"Users Retrived Successfully",http.StatusOK)
+		response.SuccessResponse(w,userDto,"Users Retrived Successfully",http.StatusOK)
 }
 
 func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
    
-    
-
     id:= r.PathValue("id")
     if id == "" {
     logger.Error("id parameter missing in request path")
@@ -100,14 +117,13 @@ userId := uidVal.(string)
 roleVal := r.Context().Value(ContextKey.UserRole)
 if roleVal == nil {
     logger.Error("user role not found")
-    response.ErrorResponse(w, http.StatusUnauthorized, "user role not found", 1002)
+    response.ErrorResponse(w, http.StatusUnauthorized, "user role not found", 1000)
     return
 }
 role := roleVal.(roles.Role)
-
-    if userId != id && role != roles.Admin {
-        logger.Error("Unauthorized delete attempt")
-        response.ErrorResponse(w, http.StatusForbidden, "Access denied", 1008)
+    if userId!=id && role!=roles.Admin{
+        logger.Error("invalid user id")
+        response.ErrorResponse(w,http.StatusBadRequest,"Invalid user Id",1000)
         return
     }
 
@@ -129,7 +145,7 @@ func(uh *UserHandler)PromoteEmployee(w http.ResponseWriter,r *http.Request){
 
 	if role != roles.Admin {
 		logger.Error("Only admins can promote users")
-        response.ErrorResponse(w, http.StatusForbidden, "Only admins can promote users", 1008)
+        response.ErrorResponse(w, http.StatusForbidden, "Only admins can promote users", 1000)
         return
     }	
 	id := r.PathValue("id")
@@ -138,7 +154,8 @@ func(uh *UserHandler)PromoteEmployee(w http.ResponseWriter,r *http.Request){
 
 	if err!=nil{
 		logger.Error("Failed to promote user")
-		response.ErrorResponse(w,http.StatusInternalServerError,"Failed to promote user",1011)
+		response.ErrorResponse(w,http.StatusInternalServerError,"Failed to promote user",1000)
+        return 
 	}
 
 	logger.Info("User promoted to Manager successfully")

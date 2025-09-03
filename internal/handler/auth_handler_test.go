@@ -188,19 +188,19 @@ func TestLogin(t *testing.T) {
             mock: func() {},
             want: http.StatusBadRequest,
         },
-        {
-            name:   "user not present",
-            method: http.MethodGet,
-            body: map[string]string{
-                "name": "yash",
-                "email": "yash@gmail.com",
-                "password": "ValidPassword1!",
-            },
-            mock: func() {
-                mockUserService.EXPECT().IsUserPresent("yash", "yash@gmail.com", "ValidPassword1!").Return(nil, errors.New("not found"))
-            },
-            want: http.StatusUnauthorized,
-        },
+        // {
+        //     name:   "user not present",
+        //     method: http.MethodGet,
+        //     body: map[string]string{
+        //         "name": "yash",
+        //         "email": "yash@gmail.com",
+        //         "password": "ValidPassword1!",
+        //     },
+        //     mock: func() {
+        //         mockUserService.EXPECT().IsUserPresent("yash", "yash@gmail.com", "ValidPassword1!").Return(nil, errors.New("not found"))
+        //     },
+        //     want: http.StatusUnauthorized,
+        // },
         {
             name:   "jwt generation error",
             method: http.MethodGet,

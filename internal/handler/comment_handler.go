@@ -1,19 +1,18 @@
 package handler
 
 import (
-
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	
+
 	"github.com/Yash-Watchguard/Tasknest/internal/logger"
+	"github.com/Yash-Watchguard/Tasknest/internal/model"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	"github.com/Yash-Watchguard/Tasknest/internal/response"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
-
 )
 
 
@@ -124,9 +123,13 @@ func (ch *CommentHandler) AddComment(w http.ResponseWriter, r *http.Request) {
         response.ErrorResponse(w, http.StatusInternalServerError, "Failed to add comment", 500)
         return
     }
-
+    
+    commentDto:=model.CommentDto{
+        CommentId: newComment.CommentId,
+        Content: newComment.Content,
+    }
     logger.Info("comment added successfully")
-    response.SuccessResponse(w, nil, " Comment added successfully!", http.StatusCreated)
+    response.SuccessResponse(w, commentDto, " Comment added successfully!", http.StatusCreated)
 }
 
 func (ch *CommentHandler) UpdateComment(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+
 	"strings"
 	"testing"
 
@@ -16,18 +17,22 @@ import (
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 	// "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
 	// "github.com/Yash-Watchguard/Tasknest/mocks"
 )
 
-func newTaskHandlerWithMock(t *testing.T) (*handler.TaskHandler, *mocks.MockTaskServiceInterface, *gomock.Controller) {
+func newTaskHandlerWithMock(t *testing.T) (*handler.TaskHandler, *mocks.MockTaskServiceInterface,*mocks.MockUserServiceInterface, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	svc := mocks.NewMockTaskServiceInterface(ctrl)
-	h := handler.NewTaskHandler(svc)
-	return h, svc, ctrl
+	svc1:=mocks.NewMockUserServiceInterface(ctrl)
+	h := handler.NewTaskHandler(svc,svc1)
+	return h, svc,svc1, ctrl
 }
 
 func TestGetTask(t *testing.T) {
+	validProjectID := "123e4567-e89b-12d3-a456-426614174000" // 36-char UUID
+
 	tests := []struct {
 		name         string
 		userIdQuery  string
@@ -50,7 +55,7 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Manager,
 			employeeId:  "mgr1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllTask("p1").Return(nil, errors.New("db error"))
+				svc.EXPECT().ViewAllTask(validProjectID).Return(nil, errors.New("db error"))
 			},
 			expectedCode: http.StatusInternalServerError,
 		},
@@ -60,7 +65,7 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Manager,
 			employeeId:  "mgr1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllTask("p1").Return([]task.Task{}, nil)
+				svc.EXPECT().ViewAllTask(validProjectID).Return([]task.Task{}, nil)
 			},
 			expectedCode: http.StatusNotFound,
 		},
@@ -70,7 +75,7 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Manager,
 			employeeId:  "mgr1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllTask("p1").Return([]task.Task{{TaskId: "t1"}}, nil)
+				svc.EXPECT().ViewAllTask(validProjectID).Return([]task.Task{{TaskId: "t1"}}, nil)
 			},
 			expectedCode: http.StatusOK,
 		},
@@ -88,7 +93,8 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Employee,
 			employeeId:  "emp1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllAssignedTasksInProject("p1", "emp1").Return(nil, errors.New("db error"))
+				svc.EXPECT().ViewAllAssignedTasksInProject(validProjectID, "emp1").
+					Return(nil, errors.New("db error"))
 			},
 			expectedCode: http.StatusInternalServerError,
 		},
@@ -98,7 +104,8 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Employee,
 			employeeId:  "emp1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllAssignedTasksInProject("p1", "emp1").Return([]task.Task{}, nil)
+				svc.EXPECT().ViewAllAssignedTasksInProject(validProjectID, "emp1").
+					Return([]task.Task{}, nil)
 			},
 			expectedCode: http.StatusNotFound,
 		},
@@ -108,7 +115,8 @@ func TestGetTask(t *testing.T) {
 			role:        roles.Employee,
 			employeeId:  "emp1",
 			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().ViewAllAssignedTasksInProject("p1", "emp1").Return([]task.Task{{TaskId: "t1"}}, nil)
+				svc.EXPECT().ViewAllAssignedTasksInProject(validProjectID, "emp1").
+					Return([]task.Task{{TaskId: "t1"}}, nil)
 			},
 			expectedCode: http.StatusOK,
 		},
@@ -116,13 +124,14 @@ func TestGetTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, svc, ctrl := newTaskHandlerWithMock(t)
+			h, svc,_, ctrl := newTaskHandlerWithMock(t)
 			defer ctrl.Finish()
 
 			tt.mockSetup(svc)
 
 			req := httptest.NewRequest(http.MethodGet, "/tasks?assigned_id="+tt.userIdQuery, nil)
-			req.SetPathValue("project_id", "p1")
+			req.SetPathValue("project_id", validProjectID)
+
 			ctx := context.WithValue(req.Context(), ContextKey.UserRole, tt.role)
 			ctx = context.WithValue(ctx, ContextKey.UserId, tt.employeeId)
 			req = req.WithContext(ctx)
@@ -131,11 +140,13 @@ func TestGetTask(t *testing.T) {
 			h.GetTask(w, req)
 
 			if w.Code != tt.expectedCode {
-				t.Errorf("%s: expected status %d, got %d", tt.name, tt.expectedCode, w.Code)
+				t.Errorf("%s: expected status %d, got %d. Body: %s", 
+					tt.name, tt.expectedCode, w.Code, w.Body.String())
 			}
 		})
 	}
 }
+
 
 func TestGetAssignedTask(t *testing.T) {
 	tests := []struct {
@@ -206,7 +217,7 @@ func TestGetAssignedTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, svc, ctrl := newTaskHandlerWithMock(t)
+			h, svc,_, ctrl := newTaskHandlerWithMock(t)
 			defer ctrl.Finish()
 
 			tt.mockSetup(svc)
@@ -228,35 +239,37 @@ func TestGetAssignedTask(t *testing.T) {
 	}
 }
 
+
 func TestCreateTask(t *testing.T) {
 	tests := []struct {
 		name         string
 		body         string
 		setupContext func(req *http.Request) *http.Request
-		mockSetup    func(svc *mocks.MockTaskServiceInterface)
+		mockSetup    func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface)
 		expectedCode int
-		expectTask   bool
 	}{
 		{
 			name: "Valid request, task created",
 			body: `{
-                "title": "Test Task",
-                "description": "Test Description",
-                "acceptance_criteria": "Criteria",
-                "deadline": "2025-09-01",
-                "priority": "High",
-                "assigned_to": "emp1"
-            }`,
+				"title": "Test Task",
+				"description": "Test Description",
+				"acceptance_criteria": "Criteria",
+				"deadline": "2025-09-01",
+				"priority": "High",
+				"assigned_to": "emp1"
+			}`,
 			setupContext: func(req *http.Request) *http.Request {
 				req.SetPathValue("project_id", "p1")
 				ctx := context.WithValue(req.Context(), ContextKey.UserId, "mgr1")
 				return req.WithContext(ctx)
 			},
-			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().CreateTask(gomock.Any()).Return(nil)
+			mockSetup: func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface) {
+				userSvc.EXPECT().ViewProfile("emp1").
+					Return([]user.User{{Status: user.Active}}, nil)
+
+				taskSvc.EXPECT().CreateTask(gomock.Any()).Return(nil)
 			},
 			expectedCode: http.StatusCreated,
-			expectTask:   true,
 		},
 		{
 			name: "Invalid request body",
@@ -266,77 +279,82 @@ func TestCreateTask(t *testing.T) {
 				ctx := context.WithValue(req.Context(), ContextKey.UserId, "mgr1")
 				return req.WithContext(ctx)
 			},
-			mockSetup:    func(svc *mocks.MockTaskServiceInterface) {},
+			mockSetup:    func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface) {},
 			expectedCode: http.StatusBadRequest,
-			expectTask:   false,
 		},
 		{
 			name: "Invalid deadline format",
 			body: `{
-                "title": "Test Task",
-                "description": "Test Description",
-                "acceptance_criteria": "Criteria",
-                "deadline": "01-09-2025",
-                "priority": "High",
-                "assigned_to": "emp1"
-            }`,
+				"title": "Test Task",
+				"description": "Test Description",
+				"acceptance_criteria": "Criteria",
+				"deadline": "01-09-2025",
+				"priority": "High",
+				"assigned_to": "emp1"
+			}`,
 			setupContext: func(req *http.Request) *http.Request {
 				req.SetPathValue("project_id", "p1")
 				ctx := context.WithValue(req.Context(), ContextKey.UserId, "mgr1")
 				return req.WithContext(ctx)
 			},
-			mockSetup:    func(svc *mocks.MockTaskServiceInterface) {},
+			mockSetup: func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface) {
+				userSvc.EXPECT().ViewProfile("emp1").
+					Return([]user.User{{Status: user.Active}}, nil)
+			},
 			expectedCode: http.StatusBadRequest,
-			expectTask:   false,
 		},
 		{
 			name: "Invalid priority value",
 			body: `{
-                "title": "Test Task",
-                "description": "Test Description",
-                "acceptance_criteria": "Criteria",
-                "deadline": "2025-09-01",
-                "priority": "Urgent",
-                "assigned_to": "emp1"
-            }`,
+				"title": "Test Task",
+				"description": "Test Description",
+				"acceptance_criteria": "Criteria",
+				"deadline": "2025-09-01",
+				"priority": "Urgent",
+				"assigned_to": "emp1"
+			}`,
 			setupContext: func(req *http.Request) *http.Request {
 				req.SetPathValue("project_id", "p1")
 				ctx := context.WithValue(req.Context(), ContextKey.UserId, "mgr1")
 				return req.WithContext(ctx)
 			},
-			mockSetup:    func(svc *mocks.MockTaskServiceInterface) {},
+			mockSetup: func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface) {
+				userSvc.EXPECT().ViewProfile("emp1").
+					Return([]user.User{{Status: user.Active}}, nil)
+			},
 			expectedCode: http.StatusBadRequest,
-			expectTask:   false,
 		},
 		{
 			name: "Service error on create",
 			body: `{
-                "title": "Test Task",
-                "description": "Test Description",
-                "acceptance_criteria": "Criteria",
-                "deadline": "2025-09-01",
-                "priority": "High",
-                "assigned_to": "emp1"
-            }`,
+				"title": "Test Task",
+				"description": "Test Description",
+				"acceptance_criteria": "Criteria",
+				"deadline": "2025-09-01",
+				"priority": "High",
+				"assigned_to": "emp1"
+			}`,
 			setupContext: func(req *http.Request) *http.Request {
 				req.SetPathValue("project_id", "p1")
 				ctx := context.WithValue(req.Context(), ContextKey.UserId, "mgr1")
 				return req.WithContext(ctx)
 			},
-			mockSetup: func(svc *mocks.MockTaskServiceInterface) {
-				svc.EXPECT().CreateTask(gomock.Any()).Return(errors.New("db error"))
+			mockSetup: func(taskSvc *mocks.MockTaskServiceInterface, userSvc *mocks.MockUserServiceInterface) {
+				userSvc.EXPECT().ViewProfile("emp1").
+					Return([]user.User{{Status: user.Active}}, nil)
+
+				taskSvc.EXPECT().CreateTask(gomock.Any()).Return(errors.New("db error"))
 			},
 			expectedCode: http.StatusInternalServerError,
-			expectTask:   false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, svc, ctrl := newTaskHandlerWithMock(t)
+			h, mockTaskSvc, mockUserSvc, ctrl := newTaskHandlerWithMock(t)
 			defer ctrl.Finish()
 
-			tt.mockSetup(svc)
+			tt.mockSetup(mockTaskSvc, mockUserSvc)
 
 			req := httptest.NewRequest(http.MethodPost, "/v1/projects/p1/tasks", strings.NewReader(tt.body))
 			req = tt.setupContext(req)
@@ -347,10 +365,11 @@ func TestCreateTask(t *testing.T) {
 			if w.Code != tt.expectedCode {
 				t.Errorf("%s: expected status %d, got %d", tt.name, tt.expectedCode, w.Code)
 			}
-
 		})
 	}
 }
+
+
 
 func TestDeleteTask(t *testing.T) {
 	tests := []struct {
@@ -415,7 +434,7 @@ func TestDeleteTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, svc, ctrl := newTaskHandlerWithMock(t)
+			h, svc, _,ctrl := newTaskHandlerWithMock(t)
 			defer ctrl.Finish()
 
 			tt.mockSetup(svc)
@@ -486,7 +505,7 @@ func TestUpdateStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, svc, ctrl := newTaskHandlerWithMock(t)
+			h, svc, _,ctrl := newTaskHandlerWithMock(t)
 			defer ctrl.Finish()
 
 			tt.mockSetup(svc)

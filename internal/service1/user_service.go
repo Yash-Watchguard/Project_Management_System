@@ -39,7 +39,9 @@ func (u *UserService) ViewAllUsers() ([]user.User, error) {
 	return u.userRepo.GetAllUsers()
 }
 func (u * UserService) DeleteUser(userId string) error {
-		return u.userRepo.DeleteUserById(userId)
+        mp:=make(map[string]interface{})
+        mp["status"]="InActive"
+		return u.userRepo.UpdateProfile(userId,mp)
 }
 
 func (u *UserService) GetAllManager(ctx context.Context) ([]user.User,error) {

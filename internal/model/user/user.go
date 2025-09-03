@@ -1,6 +1,9 @@
 package user
 
-import "github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+import (
+	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
+	 
+)
 
 
 
@@ -11,4 +14,5 @@ type User struct {
     Password    string     `json:"password" db:"password"`
     PhoneNumber string     `json:"phonenumber" db:"phone_number"`
     Email       string     `json:"email" db:"email"`
+    Status      UserStatus `json:"status" db:"status"`
 }

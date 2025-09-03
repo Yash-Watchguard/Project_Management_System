@@ -16,7 +16,7 @@ func SetupRouter(authService service1.AuthServiceInterface, userService service1
    authHandler:=handler.NewAuthHandler(authService,userService)
    userHandler:=handler.NewUserHandler(userService)
    projectHandler:=handler.NewProjectHandler(projectService,userService,taskSeervice)
-   taskHandler:=handler.NewTaskHandler(taskSeervice)
+   taskHandler:=handler.NewTaskHandler(taskSeervice,userService)
    commentHandler:=handler.NewCommentHandler(commentService,userService)
 
 
@@ -30,14 +30,16 @@ r.Handle("PUT /v1/users/{id}/promote", middleware.AuthMiddleWare(http.HandlerFun
 r.Handle("PATCH /v1/users/{id}", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.UpdateUser)))
 
 
-r.Handle("GET /v1/projects/", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetMethods)))
+r.Handle("GET /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetProjects)))
+r.Handle("GET /v1/projects/{user_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetProjects)))
+r.Handle("GET /v1/projects/status/{project_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.ProjectStatus)))
 
 r.Handle("POST /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.CreateProject)))
 r.Handle("DELETE /v1/projects/{project_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.DeleteProject)))
 
 
 r.Handle("GET /v1/projects/{project_id}/tasks/",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.GetTask)))
-r.Handle("GET /v1/projects/tasks/{employee_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.AssignedTasks)))
+r.Handle("GET /v1/employees/{employee_id}/tasks",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.AssignedTasks)))
 r.Handle("POST /v1/projects/{project_id}/tasks",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.CreateTask)))
 r.Handle("DELETE /v1/projects/{project_id}/tasks/{task_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.DeleteTask)))
 r.Handle("PATCH /v1/projects/{project_id}/tasks/{task_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.UpdateStatus)))
