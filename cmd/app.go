@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -5,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/config"
 
@@ -15,30 +17,32 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 )
 
-func runApp(db *sql.DB){
+func runApp(db *sql.DB) {
 	userRepo := repository.NewUserRepo(db)
 	projectRepo := repository.NewProjectRepo(db)
 
 	taskRepo := repository.NewTaskRepo(db)
 	commentRepo := repository.NewCommentRepo(db)
 
-	authService:=service1.NewAuthService(userRepo)
-    commentService:=service1.NewCommentService(commentRepo)
-	projectService:=service1.NewProjectService(projectRepo)
-	taskService:=service1.NewTaskService(taskRepo)
-	userService:=service1.NewUserService(userRepo)
+	authService := service1.NewAuthService(userRepo)
+	commentService := service1.NewCommentService(commentRepo)
+	projectService := service1.NewProjectService(projectRepo)
+	taskService := service1.NewTaskService(taskRepo)
+	userService := service1.NewUserService(userRepo)
 
-	router:=routers.SetupRouter(authService,userService,projectService,taskService, commentService)
+	router := routers.SetupRouter(authService, userService, projectService, taskService, commentService)
 
 	handler := middleware.CorsMiddleWare(
-    middleware.LoggingMiddleWare(router),
-    )
-    
-    log.Println("Server stating on the Port 8080...")
-	fmt.Println("Server stating on the Port 8080...")
+		middleware.LoggingMiddleWare(router),
+	)
 
-	err:=http.ListenAndServe(config.Port,handler)
-	if err!=nil{
-		log.Fatal(err)
+	log.Println("Server starting on the Port 8080...")
+	fmt.Println("Server starting on the Port 8080...")
+
+	err := http.ListenAndServe(config.Port, handler)
+	if err != nil {
+		log.Println(err)
+		fmt.Println("Error starting server:", err)
+		os.Exit(1)
 	}
 }

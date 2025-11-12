@@ -34,7 +34,7 @@ func TestAuthService_Login_Success(t *testing.T) {
 
 	// expectation
 	mockRepo.EXPECT().
-		IsUserPresent("Yash", "yash@test.com", "1234").
+		IsUserPresent("Yash", "yash@test.com","123").
 		Return(&user.User{Id: "1", Name: "Yash", Email: "yash@test.com"}, nil)
 
 	u, err := authService.Login("Yash", "yash@test.com", "1234")

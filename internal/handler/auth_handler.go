@@ -116,20 +116,19 @@ func(au *authHandler)Signup(w http.ResponseWriter,r *http.Request){
 }
 
 func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
         logger.Error("Invalid HTTP method")
         response.ErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", 1000)
         return
     }
 
 	var userInput struct {
-    Name     string `json:"name" validate:"required"`
+    // Name     string `json:"name" validate:"required"`
     Email    string `json:"email" validate:"required,email"`
     Password string `json:"password" validate:"required,min=8"`
 }
 
 	
-
     var err error
 
 	if err=json.NewDecoder(r.Body).Decode(&userInput);err!=nil{
@@ -148,9 +147,9 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
 
 	var person *user.User
        
-	person,err =au.userService.IsUserPresent(userInput.Name,userInput.Email,userInput.Password)
+	person,err =au.userService.IsUserPresent("hh",userInput.Email,userInput.Password)
 
-	person.Status=user.Active
+	person.Status=user.Active;
 
 	if err!=nil{
 		logger.Error("Invalid email or password")
@@ -163,17 +162,25 @@ func(au * authHandler)Login(w http.ResponseWriter,r * http.Request)  {
     
 	var jwtTokenString string
 	jwtTokenString, err = GenerateJwt(person.Id, person.Role)
-
+    
 	if err!=nil{
 		logger.Error("Error generating the token")
 		response.ErrorResponse(w,http.StatusInternalServerError,"Error generating the token",1006)
 
 		return
 	}
-
 	// return the jwt token as json
 	logger.Info(fmt.Sprintf("token generated for userId:%v",person.Id))
-	response.SuccessResponse(w,map[string]interface{}{"token":jwtTokenString,"UserId":person.Id},"Token generated Successfully",http.StatusCreated)
-
+	
+    w.Header().Set("content-Type","application/json")
+	w.WriteHeader(http.StatusCreated)
+	data:= map[string]any{
+		"Status":"pass",
+		"Message":"Token generated Successfully",
+		"token":jwtTokenString,
+		"UserId":person.Id,
+		"name":person.Name,
+	}
+	json.NewEncoder(w).Encode(data)
 }
 

@@ -13,9 +13,8 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	"github.com/Yash-Watchguard/Tasknest/internal/response"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
+	"github.com/Yash-Watchguard/Tasknest/internal/util"
 )
-
-
 
 type CommentHandler struct {
 	userservice    service1.UserServiceInterface
@@ -112,7 +111,7 @@ func (ch *CommentHandler) AddComment(w http.ResponseWriter, r *http.Request) {
     }
 
     newComment := comment.Comment{
-        CommentId: GenerateUUID(),
+        CommentId: util.GenerateUniqueUUID(),
         Content:   req.Content,
         CreatedBy: createdBy,
         TaskId:    taskId,

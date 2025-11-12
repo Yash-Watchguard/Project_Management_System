@@ -66,13 +66,17 @@ func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request){
 	total := len(projectTasks)
 	done := 0
 
+    if(total>0){
 	for _, t := range projectTasks {
 		if t.TaskStatus == status.Done {
 			done++
 		}
 	}
-
-	percentDone := (float64(done) / float64(total)) * 100
+}
+    percerntDone:=float64(0)
+	if(total>0){
+	percerntDone = (float64(done) / float64(total)) * 100
+	}
 
 	
 
@@ -80,14 +84,14 @@ func(ph *ProjectHandler)ProjectStatus(w http.ResponseWriter,r *http.Request){
         ProjectID            string  `json:"projectId"`
         CompletedTasks       int     `json:"completedTasks"`
         TotalTasks           int     `json:"totalTasks"`
-        CompletionPercentage string `json:"completionPercentage"`
+        CompletionPercentage float64 `json:"completionPercentage"`
     }
 
     statusResponse := &ProjectStatusResponse{
         ProjectID:            projectId,
         CompletedTasks:       done,
         TotalTasks:           total,
-        CompletionPercentage: fmt.Sprintf("%v %v",percentDone,"%"),
+        CompletionPercentage: percerntDone,
     }
 
 	logger.Info("status get successfully")
@@ -113,7 +117,7 @@ func (ph *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
     if len(pathSegments) == 2 {
 		if role!=roles.Admin{
 			logger.Error("unauthorized person wants to view all projects")
-            response.ErrorResponse(w, http.StatusForbidden, "Access denied", 1008)
+            response.ErrorResponse(w, http.StatusForbidden, "Access denie", 1008)
             return
 		}
         projects, err := ph.projectService.ViewAllProjects()

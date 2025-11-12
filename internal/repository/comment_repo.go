@@ -66,8 +66,6 @@ func (cr *CommentRepo) UpdateComment(updatedComment comment.Comment) error {
 		return err
 	}
 
-	// authorizat
-
 	if updatedComment.CreatedBy != existingCreatedBy {
 		return ErrUnauthorized
 	}
@@ -99,7 +97,6 @@ func (cr *CommentRepo) AddComment(newComment comment.Comment) error {
         VALUES (?, ?, ?, ?)
     `
 
-	// Execute the query with the comment data
 	_, err := cr.db.Exec(query, newComment.CommentId, newComment.TaskId, newComment.CreatedBy, newComment.Content)
 	if err != nil {
 		return err

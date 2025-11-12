@@ -11,4 +11,6 @@ type TaskRepo interface {
 	ViewAssignedTask(empId string)([]task.Task,error)
 	UpdateTaskStatus(userId string,empId string,updatedStatus status.TaskStatus)(error)
 	ViewAllAssignedTasksInProject(projectId string,empId string)([]task.Task,error)
+	ViewAllManagerTask(managerId string)([]task.Task,error);
+	UpdateTask(taskId string,updatedfields map[string]interface{})(error)
 }

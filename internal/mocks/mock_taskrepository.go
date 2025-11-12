@@ -69,6 +69,20 @@ func (mr *MockTaskRepoMockRecorder) SaveTask(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTask", reflect.TypeOf((*MockTaskRepo)(nil).SaveTask), arg0)
 }
 
+// UpdateTask mocks base method.
+func (m *MockTaskRepo) UpdateTask(taskId string, updatedfields map[string]any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTask", taskId, updatedfields)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTask indicates an expected call of UpdateTask.
+func (mr *MockTaskRepoMockRecorder) UpdateTask(taskId, updatedfields any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTask", reflect.TypeOf((*MockTaskRepo)(nil).UpdateTask), taskId, updatedfields)
+}
+
 // UpdateTaskStatus mocks base method.
 func (m *MockTaskRepo) UpdateTaskStatus(userId, empId string, updatedStatus status.TaskStatus) error {
 	m.ctrl.T.Helper()
@@ -96,6 +110,21 @@ func (m *MockTaskRepo) ViewAllAssignedTasksInProject(projectId, empId string) ([
 func (mr *MockTaskRepoMockRecorder) ViewAllAssignedTasksInProject(projectId, empId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ViewAllAssignedTasksInProject", reflect.TypeOf((*MockTaskRepo)(nil).ViewAllAssignedTasksInProject), projectId, empId)
+}
+
+// ViewAllManagerTask mocks base method.
+func (m *MockTaskRepo) ViewAllManagerTask(managerId string) ([]task.Task, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ViewAllManagerTask", managerId)
+	ret0, _ := ret[0].([]task.Task)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ViewAllManagerTask indicates an expected call of ViewAllManagerTask.
+func (mr *MockTaskRepoMockRecorder) ViewAllManagerTask(managerId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ViewAllManagerTask", reflect.TypeOf((*MockTaskRepo)(nil).ViewAllManagerTask), managerId)
 }
 
 // ViewAllTask mocks base method.

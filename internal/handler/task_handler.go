@@ -28,7 +28,41 @@ type TaskHandler struct {
 func NewTaskHandler(taskService service1.TaskServiceInterface, userService service1.UserServiceInterface) *TaskHandler {
 	return &TaskHandler{taskService: taskService, userService: userService}
 }
+func(th *TaskHandler)GetAllMangerCreatedTask(w http.ResponseWriter, r *http.Request){
+	user_Id :=r.PathValue("manager_id")
 
+	newTasks, err := th.taskService.GetAllManagerTask(user_Id)
+		if err != nil {
+			logger.Error("error getting the tasks")
+			response.ErrorResponse(w, http.StatusInternalServerError, "Error in fetching the tasks", 500)
+			return
+		}
+
+		if len(newTasks) == 0 {
+			logger.Error("No task Created")
+			response.ErrorResponse(w, http.StatusNotFound, "No task Created", 1000)
+			return
+		}
+		var tasks []model.TaskDto
+		for _, newTask := range newTasks {
+			taskDto := model.TaskDto{
+				TaskId:             newTask.TaskId,
+				Title:              newTask.Title,
+				Description:        newTask.Description,
+				AcceptanceCriteria: newTask.AcceptanceCriteria,
+				Deadline:           newTask.Deadline,
+				TaskPriority:       Priority.GetPriority(newTask.TaskPriority),
+				TaskStatus:         status.GetStatusString(newTask.TaskStatus),
+				AssignedTo:         newTask.AssignedTo,
+				ProjectId:          newTask.ProjectId,
+				CreatedBy:          newTask.CreatedBy,
+			}
+			tasks = append(tasks, taskDto)
+		}
+
+		logger.Info("Tasks retrived Successfully")
+		response.SuccessResponse(w, tasks, "Tasks retrived Successfully", http.StatusOK)
+}
 func (th *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("assigned_id")
 
@@ -180,6 +214,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		response.ErrorResponse(w, http.StatusBadRequest, "Missing project_id in request path", 400)
 		return
 	}
+
 	managerId := r.Context().Value(ContextKey.UserId).(string)
 
 	var req struct {
@@ -319,4 +354,25 @@ func (th *TaskHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Info("Task status updated successfully")
 	response.SuccessResponse(w, nil, "Task status updated successfully", http.StatusOK)
+}
+
+func(th *TaskHandler) UpdateTask(w http.ResponseWriter,r* http.Request){
+
+	 taskId:=r.PathValue("task_id");
+
+	 var updates map[string]interface{}
+
+	 if err:=json.NewDecoder(r.Body).Decode(&updates);err!=nil{
+		response.ErrorResponse(w,http.StatusBadRequest,"Invalid request body",1000)
+		return
+	 }
+
+	 err:=th.taskService.UpdateTask(taskId,updates)
+
+	 if err!=nil{
+        response.ErrorResponse(w,http.StatusInternalServerError,err.Error(),1000)
+		return
+	 }
+     response.SuccessResponse(w,nil,"Task Updated SuccessFully",http.StatusOK)
+	 
 }

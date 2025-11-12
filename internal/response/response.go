@@ -29,6 +29,7 @@ func ErrorResponse(w http.ResponseWriter,statusCode int, errMessage string, code
 	response:=response{
 		Status: "fail",
 		Message: errMessage,
+		ErrorCode: code,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

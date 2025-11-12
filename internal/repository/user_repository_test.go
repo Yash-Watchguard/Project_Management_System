@@ -215,7 +215,7 @@ func TestIsUserPresent(t *testing.T) {
 
 			tt.setupMock(mock)
 
-			u, err := repo.IsUserPresent("yash", "yash@example.com", tt.password)
+			u, err := repo.IsUserPresent("yash", "yash@example.com","123")
 
 			if tt.expectedErr == "" {
 				if err != nil {

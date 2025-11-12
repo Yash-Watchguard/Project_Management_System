@@ -31,7 +31,7 @@ func NewUserRepo(db UserRepoInterface) *UserRepo {
 
 
 func (repo *UserRepo) SaveUser(newUser *user.User) error {
-    columns := []string{"id", "role", "name", "password", "phone_number", "email"}
+    columns := []string{"id", "role", "name", "password" ,"phone_number", "email"}
     query := config.InsertQuery("users", columns)
 
     _, err := repo.db.Exec(query,
@@ -62,7 +62,7 @@ func (repo *UserRepo) SaveUser(newUser *user.User) error {
 
 func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, error) {
 	
-	row:=repo.db.QueryRow(config.SelectQuery("users",[]string{"id","name","email","password","role","phone_number"},"name","email"),name,email)
+	row:=repo.db.QueryRow(config.SelectQuery("users",[]string{"id","name","email","password","role","phone_number"},"email"),email)
 
 	var user user.User
 
@@ -103,7 +103,7 @@ func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
 
 
 func (repo *UserRepo) GetAllUsers() ([]user.User, error) {
-	query := `SELECT id, name, email, role, phone_number FROM users`
+	query := `SELECT id, name, email, role, phone_number FROM users WHERE status='Active'`
 	// `SELECT id, name, email, role, phone_number FROM users`
 
 	rows, err := repo.db.Query(query)
@@ -211,9 +211,9 @@ func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{})
     }
 
     query = fmt.Sprintf("UPDATE users SET %s WHERE id = ?", strings.Join(setClauses, ", "))
-    args = append(args, userId)
+    args = append(args, userId)	
 
-    result, err := ur.db.Exec(query, args...)
+    _,err = ur.db.Exec(query, args...)
     if err != nil {
         // Handle unique constraint errors
         if strings.Contains(err.Error(), "Duplicate entry") {
@@ -227,13 +227,13 @@ func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{})
         return err
     }
 
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return err
-    }
-    if rowsAffected == 0 {
-        return errors.New("user not found")
-    }
+    // rowsAffected, err := result.RowsAffected()
+    // if err != nil {
+    //     return err
+    // }
+    // if rowsAffected == 0 {
+    //     return errors.New("user not found")
+    // }
 
     return nil
 }
@@ -259,10 +259,10 @@ func (ur *UserRepo) PromoteEmployee(employeeId string) error {
 }
 func (ur *UserRepo) ViewAllEmployee() ([]user.User, error) {
 	// Build SELECT query to get all employees
-	query := config.SelectQuery("users",[]string{"id", "name", "email", "role", "phone_number", "password"},"role")
+	query := config.SelectQuery("users",[]string{"id", "name", "email", "role", "phone_number", "password"},"role","status")
 
 	
-	rows, err := ur.db.Query(query, roles.Employee)
+	rows, err := ur.db.Query(query, roles.Employee,"Active")
 	if err != nil {
 		return nil, err
 	}

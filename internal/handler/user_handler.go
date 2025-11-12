@@ -166,12 +166,12 @@ func(uh *UserHandler)UpdateUser(w http.ResponseWriter,r * http.Request){
     
 	ctx := r.Context()
     userId := ctx.Value(ContextKey.UserId).(string)
-    role := ctx.Value(ContextKey.UserRole).(roles.Role)
+    // role := ctx.Value(ContextKey.UserRole).(roles.Role)
 
 	
     id := r.PathValue("id")
 
-	if userId != id && role != roles.Admin {
+	if userId != id  {
         logger.Error("Unauthorized update attempt")
         response.ErrorResponse(w, http.StatusForbidden, "Access denied",1008)
         return
@@ -194,6 +194,30 @@ func(uh *UserHandler)UpdateUser(w http.ResponseWriter,r * http.Request){
     logger.Info("User updated successfully")
     response.SuccessResponse(w, nil, "User updated successfully", http.StatusOK)
     
+}
+func(uh *UserHandler)GetAllemployees(w http.ResponseWriter,r * http.Request){
+     ctx := r.Context()
+    users, err :=uh.userService.ViewAllEmplpyee(ctx)
+        if err != nil {
+			logger.Error("no users available")
+            response.ErrorResponse(w, http.StatusNotFound, "No user found", 1004)
+            return
+        }
+
+        var userDto []model.UserDto
+        for _,person:=range users{
+            p1:=model.UserDto{
+                Id: person.Id,
+                Name: person.Name,
+                Email: person.Email,
+                PhoneNumber: person.PhoneNumber,
+                Role: roles.RoleParser(person.Role),
+            }
+            userDto=append(userDto,p1)
+        }
+
+		logger.Info("users retrived successfully")
+		response.SuccessResponse(w,userDto,"Users Retrived Successfully",http.StatusOK)
 }
 
 

@@ -3,6 +3,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
@@ -17,6 +19,44 @@ func NewTaskRepo(db *sql.DB) *TaskRepo {
 	return &TaskRepo{db: db}
 }
 
+func(taskRepo *TaskRepo)ViewAllManagerTask(managerId string)([]task.Task,error){
+    query:=`SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby
+              FROM tasks WHERE createdby = ?`
+		rows, err := taskRepo.db.Query(query, managerId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()	 
+	var projectTasks []task.Task
+	for rows.Next() {
+		var t task.Task
+		var deadlineBytes []byte
+		err := rows.Scan(
+			&t.TaskId,
+			&t.Title,
+			&t.Description,
+			&t.AcceptanceCriteria,
+			&deadlineBytes,
+			&t.TaskPriority,
+			&t.TaskStatus,
+			&t.AssignedTo,
+			&t.ProjectId,
+			&t.CreatedBy,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if len(deadlineBytes) > 0 {
+			t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes))
+			if err != nil {
+				return nil, err
+			}
+		}
+		projectTasks = append(projectTasks, t)
+	}
+	return projectTasks, nil
+
+}
 func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
 	query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby
               FROM tasks WHERE projectid = ?`
@@ -220,6 +260,37 @@ func (taskRepo *TaskRepo)ViewAllAssignedTasksInProject(projectId string, empId s
 	}
 
 	return assignedTasks, nil
+}
+
+func(taskRepo *TaskRepo)UpdateTask(taskId string, updates map[string]interface{})error{
+	setClauses := []string{}
+    args := []interface{}{}
+
+    // Define the order of fields to ensure consistent placeholder and arg order
+    fields := []string{"title", "description", "acceptance_criteria", "deadline", "taskpriority", "assignesto"}
+
+    for _, field := range fields {
+        if value, exists := updates[field]; exists {
+            setClauses = append(setClauses, fmt.Sprintf("%s = ?", field))
+            args = append(args, value)
+        }
+    }
+
+    if len(setClauses) == 0 {
+        return errors.New("no fields to update")
+    }
+
+    query := "UPDATE tasks SET " + strings.Join(setClauses, ", ") + " WHERE task_id = ?"
+	fmt.Println(query)
+    args = append(args, taskId)
+
+	fmt.Println(args)
+	_,err := taskRepo.db.Exec(query, args...)
+
+	if err!=nil{
+		return err
+	}
+	return nil
 }
 
 

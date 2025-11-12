@@ -69,6 +69,21 @@ func (mr *MockTaskServiceInterfaceMockRecorder) DeleteTask(managerId, taskId any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTask", reflect.TypeOf((*MockTaskServiceInterface)(nil).DeleteTask), managerId, taskId)
 }
 
+// GetAllManagerTask mocks base method.
+func (m *MockTaskServiceInterface) GetAllManagerTask(managerId string) ([]task.Task, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllManagerTask", managerId)
+	ret0, _ := ret[0].([]task.Task)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllManagerTask indicates an expected call of GetAllManagerTask.
+func (mr *MockTaskServiceInterfaceMockRecorder) GetAllManagerTask(managerId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllManagerTask", reflect.TypeOf((*MockTaskServiceInterface)(nil).GetAllManagerTask), managerId)
+}
+
 // GetAssigenedTask mocks base method.
 func (m *MockTaskServiceInterface) GetAssigenedTask(empId string) ([]task.Task, error) {
 	m.ctrl.T.Helper()
@@ -82,6 +97,20 @@ func (m *MockTaskServiceInterface) GetAssigenedTask(empId string) ([]task.Task, 
 func (mr *MockTaskServiceInterfaceMockRecorder) GetAssigenedTask(empId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAssigenedTask", reflect.TypeOf((*MockTaskServiceInterface)(nil).GetAssigenedTask), empId)
+}
+
+// UpdateTask mocks base method.
+func (m *MockTaskServiceInterface) UpdateTask(taskId string, updates map[string]any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTask", taskId, updates)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTask indicates an expected call of UpdateTask.
+func (mr *MockTaskServiceInterfaceMockRecorder) UpdateTask(taskId, updates any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTask", reflect.TypeOf((*MockTaskServiceInterface)(nil).UpdateTask), taskId, updates)
 }
 
 // UpdateTaskStatus mocks base method.

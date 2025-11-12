@@ -147,6 +147,4 @@ func main(){
 	logger.Info("Start the application....")
 
 	runApp(db)
-
-      
 }

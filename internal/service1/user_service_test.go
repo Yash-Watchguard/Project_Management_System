@@ -457,7 +457,7 @@ func TestUserService_IsUserPresent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			u, err := service.IsUserPresent("Yash", "yash@test.com", "1234")
+			u, err := service.IsUserPresent("yash","yash@test.com", "1234")
 
 			if tt.expectedErr && err == nil {
 				t.Errorf("expected error, got nil")

@@ -25,10 +25,10 @@ r.Handle("/v1/login",http.HandlerFunc(authHandler.Login))
 
 
 r.Handle("GET /v1/users/", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.Getuser)))
+r.Handle("GET /v1/employees", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.GetAllemployees)))
 r.Handle("DELETE /v1/users/{id}", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.DeleteUser)))
 r.Handle("PUT /v1/users/{id}/promote", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.PromoteEmployee)))
 r.Handle("PATCH /v1/users/{id}", middleware.AuthMiddleWare(http.HandlerFunc(userHandler.UpdateUser)))
-
 
 r.Handle("GET /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetProjects)))
 r.Handle("GET /v1/projects/{user_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.GetProjects)))
@@ -37,12 +37,13 @@ r.Handle("GET /v1/projects/status/{project_id}", middleware.AuthMiddleWare(http.
 r.Handle("POST /v1/projects", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.CreateProject)))
 r.Handle("DELETE /v1/projects/{project_id}", middleware.AuthMiddleWare(http.HandlerFunc(projectHandler.DeleteProject)))
 
-
 r.Handle("GET /v1/projects/{project_id}/tasks/",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.GetTask)))
 r.Handle("GET /v1/employees/{employee_id}/tasks",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.AssignedTasks)))
 r.Handle("POST /v1/projects/{project_id}/tasks",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.CreateTask)))
 r.Handle("DELETE /v1/projects/{project_id}/tasks/{task_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.DeleteTask)))
 r.Handle("PATCH /v1/projects/{project_id}/tasks/{task_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.UpdateStatus)))
+r.Handle("GET  /v1/project/{manager_id}/tasks/manager",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.GetAllMangerCreatedTask)))
+r.Handle("PATCH /v1/task/update/{task_id}",middleware.AuthMiddleWare(http.HandlerFunc(taskHandler.UpdateTask)))
 
 // rotes for the comments
 r.Handle("GET /v1/projects/{project_id}/tasks/{task_id}/comments",middleware.AuthMiddleWare(http.HandlerFunc(commentHandler.ViewAllComment)))

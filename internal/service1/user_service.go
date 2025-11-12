@@ -3,14 +3,17 @@ package service1
 import (
 	"context"
 	"errors"
-     "golang.org/x/crypto/bcrypt"
+	"fmt"
+
 	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
+	"golang.org/x/crypto/bcrypt"
 
 	ContextKey "github.com/Yash-Watchguard/Tasknest/internal/model/context_key"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/roles"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
 )
+
 //go:generate mockgen -source=user_service.go -destination=../mocks/mock_userservice.go -package=mocks
 type UserServiceInterface interface{
     ViewProfile( userId string) ([]user.User, error)
@@ -20,7 +23,7 @@ type UserServiceInterface interface{
     UpdateUser(id string, updates map[string]interface{}) error
     PromoteEmployee( employeeId string) error
     ViewAllEmplpyee(ctx context.Context)([]user.User,error)
-    IsUserPresent(name string, email string,password string)(*user.User,error)
+    IsUserPresent(name,email string,password string)(*user.User,error)
     CheckUserExist(email string)(bool)
 }
 type UserService struct{
@@ -63,12 +66,14 @@ func (us *UserService) UpdateUser(id string, updates map[string]interface{}) err
 
     // Apply partial updates
     if name, ok := updates["name"].(string); ok {
-        finalUpdates["name"] = name
+        if(len(name)!=0){
+            finalUpdates["name"] = name
+        }
     }
     if email, ok := updates["email"].(string); ok {
-        // validate email format
-        if err := util.ValidateEmail(email); err != nil {
-            return err
+        if(len(email)!=0){
+             if err := util.ValidateEmail(email); err != nil {
+            return errors.New("email is not valid")
         }
 
         // check uniqueness
@@ -77,25 +82,38 @@ func (us *UserService) UpdateUser(id string, updates map[string]interface{}) err
             return errors.New("email already exists")
         }
         finalUpdates["email"] = email
+        }
+        // validate email format
+       
     }
     if password, ok := updates["password"].(string); ok {
+
         // validate password strength
-        if err := util.ValidatePassword(password); err != nil {
-            return err
+        if(len(password)!=0){
+            if err := util.ValidatePassword(password); err != nil {
+            return errors.New("please enter valid password")
         }
 
         hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
         finalUpdates["password"] = string(hashedPassword)
+        }
+        
     }
     if phone, ok := updates["phoneNumber"].(string); ok {
-        finalUpdates["phone_number"] = phone // match DB column name
+        if(len(phone)!=0){
+             if err:=util.ValidateMobileNumber(phone);err!=nil{
+            return errors.New("phone number is not valid")
+        }
+        finalUpdates["phone_number"] = phone 
+        }
+       
     }
 
     if len(finalUpdates) == 0 {
         return errors.New("no valid fields to update")
     }
 
-    
+    fmt.Println(finalUpdates)
     return us.userRepo.UpdateProfile(id, finalUpdates)
 }
 
@@ -121,6 +139,6 @@ func(u *UserService)CheckUserExist(email string)(bool){
 	}
 	return false
 }
-func(u *UserService)IsUserPresent(name string, email string,password string)(*user.User,error){
+func(u *UserService)IsUserPresent(name,email string,password string)(*user.User,error){
     return u.userRepo.IsUserPresent(name,email,password)
 }
