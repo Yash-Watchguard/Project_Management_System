@@ -6,14 +6,17 @@ import (
 
 	"github.com/Yash-Watchguard/Tasknest/internal/config"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type CommentRepo struct {
-	db *sql.DB
+	db sql.DB
+	dynamoClient dynamodb.Client
+	tableName string
 }
 
-func NewCommentRepo(db *sql.DB) *CommentRepo {
-	return &CommentRepo{db: db}
+func NewCommentRepo(dynamoDbClient dynamodb.Client,tableName string) *CommentRepo {
+	return &CommentRepo{dynamoClient: dynamoDbClient,tableName: tableName}
 }
 
 var (

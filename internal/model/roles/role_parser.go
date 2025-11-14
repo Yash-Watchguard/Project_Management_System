@@ -1,7 +1,8 @@
 package roles
-import(
-	"fmt"
+
+import (
 	"database/sql/driver"
+	"fmt"
 )
 
 func RoleParser(role Role)(string){
@@ -14,6 +15,17 @@ func RoleParser(role Role)(string){
 		return "Employee"
 	}
 	return ""
+}
+func RoleParserStringToRole(role string)(Role){
+    switch role{
+	case "Admin":
+		return Role(0)
+	case "Manager":
+		return Role(1)
+	case "Employee":
+		return Role(2)
+	}
+	return 8
 }
 func (r *Role) Scan(value interface{}) error {
     intVal, ok := value.(int64) // MySQL TINYINT comes as int64

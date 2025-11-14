@@ -22,5 +22,5 @@ func (s *AuthService) Signup(user *user.User) error {
 	return s.Repo.SaveUser(user)
 }
 func (s *AuthService) Login(name, email, password string) (*user.User, error) {
-	return s.Repo.IsUserPresent(name,name, email)
+	return s.Repo.IsUserPresent(name,email, password)
 }

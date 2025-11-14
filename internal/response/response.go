@@ -9,7 +9,7 @@ type response struct {
 	Status    string      `json:"status"`
 	Message   string      `json:"message"`
 	ErrorCode int         `json:"errorcode,omitempty"`
-	Data      any `json:"data,omitempty"`
+	Data      any         `json:"data,omitempty"`
 }
 
 func SuccessResponse(w http.ResponseWriter, data any , message string, code int){

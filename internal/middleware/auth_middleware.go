@@ -50,7 +50,7 @@ func AuthMiddleWare(next http.Handler) http.Handler{
 			response.ErrorResponse(w, http.StatusUnauthorized, "Invalid token", 1002)
 			return
 		}
-		role := roles.Role(int(roleFloat)) // convert back ✅
+		role := roles.Role(int(roleFloat))
 
 		ctx := context.WithValue(r.Context(), ContextKey.UserId, userID)
 		ctx = context.WithValue(ctx, ContextKey.UserRole, role)
