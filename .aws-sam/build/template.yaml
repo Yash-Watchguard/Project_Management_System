@@ -1,0 +1,146 @@
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    Architectures:
+    - x86_64
+    Timeout: 200
+    Handler: bootstrap
+    Runtime: provided.al2023
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v5
+      Cors:
+        AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS,PATCH'''
+        AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+        AllowOrigin: '''*'''
+  Login:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: Login
+    Properties:
+      CodeUri: Login
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /login
+            RestApiId:
+              Ref: Api
+  Signup:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: Signup
+    Properties:
+      CodeUri: Signup
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /signup
+            RestApiId:
+              Ref: Api
+  AddComment:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: AddComment
+    Properties:
+      CodeUri: AddComment
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /projects/{project_id}/tasks/{task_id}/comments
+            RestApiId:
+              Ref: Api
+  ViewAllComment:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: ViewAllComment
+    Properties:
+      CodeUri: ViewAllComment
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /projects/{project_id}/tasks/{task_id}/comments
+            RestApiId:
+              Ref: Api
+  AddTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: AddTask
+    Properties:
+      CodeUri: AddTask
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /projects/{project_id}/tasks
+            RestApiId:
+              Ref: Api
+  UpdateTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: updateTask
+    Properties:
+      CodeUri: UpdateTask
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: patch
+            Path: /projects/{project_id}/tasks/{task_id}/manager/{manager_id}/update
+            RestApiId:
+              Ref: Api
+  DeleteTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: DeleteTask
+    Properties:
+      CodeUri: DeleteTask
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /projects/{project_id}/tasks/{task_id}/manager/{manager_id}/employee/{emp_id}/deletetask
+            RestApiId:
+              Ref: Api
+  GetAssignedEmpTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: GetAssignedEmpTask
+    Properties:
+      CodeUri: GetAssignedEmpTask
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /employees/{emp_id}/tasksy
+            RestApiId:
+              Ref: Api

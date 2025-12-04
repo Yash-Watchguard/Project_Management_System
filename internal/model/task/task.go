@@ -19,3 +19,18 @@ type Task struct {
 	ProjectId          string            `json:"project_id" db:"project_id"`              
 	CreatedBy          string            `json:"created_by" db:"created_by"`              
 }
+
+type DynamoTask struct{
+	PK                 string            `json:"PK" dynamodbav:"PK"` 
+	SK                 string            `json:"SK" dynamodbav:"SK"` 
+	TaskId             string            `json:"task_id" dynamodbav:"TaskId"`
+	Title              string            `json:"title" dynamodbav:"Title"`
+	Description        string            `json:"description" dynamodbav:"Description"`
+	AcceptanceCriteria string            `json:"acceptance_criteria" dynamodbav:"AcceptanceCriteria"`
+	Deadline           string         `json:"deadline" dynamodbav:"Deadline"`
+	TaskPriority       string `json:"taskpriority" dynamodbav:"TaskPriority"`
+	TaskStatus         string `json:"taskstatus" dynamodbav:"TaskStatus"`
+	AssignedTo         string            `json:"assigned_to" dynamodbav:"AssignedTo"`
+	ProjectId          string            `json:"project_id" dynamodbav:"ProjectId"`
+	CreatedBy          string            `json:"created_by" dynamodbav:"CreatedBy"`
+}

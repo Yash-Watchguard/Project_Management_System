@@ -8,21 +8,18 @@ import (
 
 	"github.com/Yash-Watchguard/Tasknest/internal/config"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/user"
+	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	"github.com/Yash-Watchguard/Tasknest/internal/response"
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
 
-	"github.com/Yash-Watchguard/Tasknest/internal/repository"
 	"github.com/Yash-Watchguard/Tasknest/internal/service1"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	
-	
 )
 
 var authService service1.AuthServiceInterface
 
 func init() {
-	//  get the db instance and services
 	
 
 	dynmoDbClient := config.GetDyanoDbCliebt()
@@ -55,7 +52,7 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		return response.LambdaErrorResponse(nil,"Invalid email and password",1002,http.StatusInternalServerError), nil
 	}
 
-	person.Status = user.Active
+	person.Status =  user.Active
 
 	
 

@@ -2,26 +2,29 @@ package service1
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 
 	Priority "github.com/Yash-Watchguard/Tasknest/internal/model/priority"
-	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+	Status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
+	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
 )
 
 //go:generate mockgen -source=task_service.go -destination=../mocks/mock_taskservice.go -package=mocks
 type TaskServiceInterface interface{
 	ViewAllTask( projectId string) ([]task.Task, error)
 	CreateTask(task task.Task)error
-	DeleteTask(managerId string,taskId string)error
+	DeleteTask(projectId,taskId,managerId string,empId string)error
 	GetAssigenedTask(empId string)([]task.Task,error)
 	UpdateTaskStatus(userId string,taskId string,updatedStatus status.TaskStatus)error
 	ViewAllAssignedTasksInProject(projectId string,emp string)([]task.Task,error)
 	GetAllManagerTask(managerId string)([]task.Task,error)
-	UpdateTask(taskId string,updates map[string]interface{})error
+	UpdateTask(projectId,taskId string,managerId string,updates map[string]interface{})error
+	
 }
 type TaskService struct{
 	taskRepo    interfaces.TaskRepo
@@ -42,9 +45,9 @@ func(ts *TaskService)CreateTask(task task.Task)error{
 	return ts.taskRepo.SaveTask(task)
 }
 
-func(ts *TaskService)DeleteTask(managerId string,taskId string)error{
+func(ts *TaskService)DeleteTask(projectId,taskId,managerId string,empId string)error{
 	
-	return ts.taskRepo.DeleteTask(taskId)
+	return ts.taskRepo.DeleteTask(projectId,taskId,managerId,empId)
 }
 
 func(ts *TaskService)GetAssigenedTask(empId string)([]task.Task,error){
@@ -61,32 +64,41 @@ func(ts *TaskService)ViewAllAssignedTasksInProject(projectId string,emp string)(
 	return ts.taskRepo.ViewAllAssignedTasksInProject(projectId,emp)
 }
 
-func(ts *TaskService)UpdateTask(taskId string,updates map[string]interface{})error{
+func(ts *TaskService)UpdateTask(projectId,taskId string,managerId string,updates map[string]interface{})error{
      finalUpdates := make(map[string]interface{})
 
-	 if titel,ok:=updates["titel"].(string);ok{
-		if len(titel)!=0 {
-			finalUpdates["title"]=titel
+	 if title,ok:=updates["titel"].(string);ok{
+		if len(title)!=0 {
+			finalUpdates["Title"]=title
+		}
+	 }
+	 if status,ok:=updates["status"].(string);ok{
+		if len(status)!=0 {
+			newStatus,err:=Status.GetStatusFromString(status)
+			if err!=nil {
+				return errors.New("invalid status")
+			}
+			finalUpdates["TaskStatus"]=Status.GetStatusString(newStatus)
 		}
 	 }
 	 if description,ok:=updates["description"].(string);ok{
 		if len(description)!=0 {
-			finalUpdates["description"]=description
+			finalUpdates["Description"]=description
 		}
 	 }
 	  if AcceptanceCriteria,ok:=updates["acceptanceCriteria"].(string);ok{
 		if len(AcceptanceCriteria)!=0 {
-			finalUpdates["acceptance_criteria"]=AcceptanceCriteria
+			finalUpdates["AcceptanceCriteria"]=AcceptanceCriteria
 		}
 	 }
 
 	 if deadline,ok:=updates["deadline"].(string);ok{
 		if len(deadline)!=0 {
-			deadline,err:=util.ParseDate(deadline)
+			deadlineParsed,err:=util.ParseDate(deadline)
 			if err!=nil {
 				return errors.New("invalid date")
 			}
-			finalUpdates["deadline"]=deadline
+			finalUpdates["Deadline"]=deadlineParsed.Format(time.RFC3339)
 		}
 	 }
 
@@ -96,22 +108,17 @@ func(ts *TaskService)UpdateTask(taskId string,updates map[string]interface{})err
 			if err != nil {
 				return errors.New("invalid priority")
 			}
-			finalUpdates["taskpriority"]=priority
+			finalUpdates["TaskPriority"]=Priority.GetPriority(priority)
 		}
 	 }
 
 	 if empId,ok:=updates["empId"].(string);ok{
 		if(len(empId)!=0){
-           finalUpdates["assignesto"]=empId
+			finalUpdates["AssignedTo"]=empId
 		}
-	 }
-
-	 if(len(finalUpdates)==0){
-		return errors.New("no valid fields to update")
-	 }
-     
-	 return ts.taskRepo.UpdateTask(taskId,finalUpdates)
 	 
+}
+return ts.taskRepo.UpdateTask(projectId,taskId,managerId,finalUpdates)
 }
 
 

@@ -1,22 +1,31 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	Priority "github.com/Yash-Watchguard/Tasknest/internal/model/priority"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
 	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+	"github.com/Yash-Watchguard/Tasknest/internal/util"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type TaskRepo struct {
 	db *sql.DB
+	dynamoCliet *dynamodb.Client
+	tableName string
 }
 
-func NewTaskRepo(db *sql.DB) *TaskRepo {
-	return &TaskRepo{db: db}
+func NewTaskRepo(dynamoCliet *dynamodb.Client,tableName string) *TaskRepo {
+	return &TaskRepo{dynamoCliet: dynamoCliet,tableName: tableName}
 }
 
 func(taskRepo *TaskRepo)ViewAllManagerTask(managerId string)([]task.Task,error){
@@ -98,96 +107,154 @@ func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
 }
 
 func (taskRepo *TaskRepo) SaveTask(newTask task.Task) error {
-	query := `INSERT INTO tasks 
-        (task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := taskRepo.db.Exec(
-		query,
-		newTask.TaskId,
-		newTask.Title,
-		newTask.Description,
-		newTask.AcceptanceCriteria,
-		newTask.Deadline,
-		newTask.TaskPriority,
-		newTask.TaskStatus,
-		newTask.AssignedTo,
-		newTask.ProjectId,
-		newTask.CreatedBy,
-	)
-
-	if err != nil {
-		return err
+ dynamoTask := task.DynamoTask{
+		PK:                 "USER#" + newTask.CreatedBy,
+		SK:                 "PROJECT#" + newTask.ProjectId + "TASK#" + newTask.TaskId,
+		TaskId:             newTask.TaskId,
+		Title:              newTask.Title,
+		Description:        newTask.Description,
+		AcceptanceCriteria: newTask.AcceptanceCriteria,
+		Deadline:           newTask.Deadline.Format(time.RFC3339),
+		TaskPriority:       Priority.GetPriority(newTask.TaskPriority),
+		TaskStatus:         status.GetStatusString(newTask.TaskStatus),
+		AssignedTo:         newTask.AssignedTo,
+		ProjectId:          newTask.ProjectId,
+		CreatedBy:          newTask.CreatedBy,
 	}
+
+	item, err := attributevalue.MarshalMap(dynamoTask)
+	if err != nil {
+		return fmt.Errorf("error marshaling task: %s", err.Error())
+	}
+	_, err = taskRepo.dynamoCliet.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String(taskRepo.tableName),
+		Item:      item,
+	})
+	if err != nil {
+		return fmt.Errorf("error saving task: %s", err.Error())
+	}
+
+	dynamoTask = task.DynamoTask{
+		PK:                 "USER#" + newTask.AssignedTo,
+		SK:                 "TASK#PROJECT#" + newTask.ProjectId + "TASK#" + newTask.TaskId,
+		TaskId:             newTask.TaskId,
+		Title:              newTask.Title,
+		Description:        newTask.Description,
+		AcceptanceCriteria: newTask.AcceptanceCriteria,
+		Deadline:           newTask.Deadline.Format(time.RFC3339),
+		TaskPriority:       Priority.GetPriority(newTask.TaskPriority),
+		TaskStatus:         status.GetStatusString(newTask.TaskStatus),
+		AssignedTo:         newTask.AssignedTo,
+		ProjectId:          newTask.ProjectId,
+		CreatedBy:          newTask.CreatedBy,
+	}
+
+	item, err = attributevalue.MarshalMap(dynamoTask)
+	if err != nil {
+		return fmt.Errorf("error marshaling task: %s", err.Error())
+	}
+	_, err = taskRepo.dynamoCliet.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String(taskRepo.tableName),
+		Item:      item,
+	})
+	if err != nil {
+		return fmt.Errorf("error saving task: %s", err.Error())
+	}
+
 	return nil
 }
 
-func (taskRepo *TaskRepo) DeleteTask(taskId string) error {
-	//Check  task exists
-	var exists bool
-	checkQuery := `SELECT EXISTS(SELECT 1 FROM tasks WHERE task_id = ?)`
-	err := taskRepo.db.QueryRow(checkQuery, taskId).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return errors.New("task not found")
-	}
-	deleteQuery := `DELETE FROM tasks WHERE task_id = ?`
-	_, err = taskRepo.db.Exec(deleteQuery, taskId)
-	if err != nil {
-		return err
-	}
 
-	return nil
+func (r *TaskRepo) DeleteTask(projectId, taskId, managerId, empId string) error {
+
+    pkManager := "USER#" + managerId
+    skManager := "PROJECT#" + projectId + "TASK#" + taskId
+
+    pkEmployee := "USER#" + empId
+    skEmployee := "TASK#PROJECT#" + projectId + "TASK#" + taskId
+
+    deleteStmt := "DELETE FROM " + r.tableName + " WHERE PK = ? AND SK = ?"
+
+    _, err := r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(deleteStmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkManager},
+            &types.AttributeValueMemberS{Value: skManager},
+        },
+    })
+    if err != nil {
+        return fmt.Errorf("failed to delete manager task copy: %w", err)
+    }
+
+    _, err = r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(deleteStmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkEmployee},
+            &types.AttributeValueMemberS{Value: skEmployee},
+        },
+    })
+    if err != nil {
+        return fmt.Errorf("failed to delete employee task copy: %w", err)
+    }
+
+    return nil
 }
+
 
 func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
-	var assignedTasks []task.Task
 
-	query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby 
-              FROM tasks 
-              WHERE assignesto = ?`
+	var tasks []task.Task
 
-	rows, err := taskRepo.db.Query(query, empId)
-	if err != nil {
-		return nil, err
+	pk := fmt.Sprintf("USER#%s", empId)
+
+	input := &dynamodb.QueryInput{
+		TableName: aws.String(taskRepo.tableName),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :skPrefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk":       &types.AttributeValueMemberS{Value: pk},
+			":skPrefix": &types.AttributeValueMemberS{Value: "TASK#PROJECT#"},
+		},
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var t task.Task
-		var deadlineBytes []byte
-		err := rows.Scan(
-			&t.TaskId,
-			&t.Title,
-			&t.Description,
-			&t.AcceptanceCriteria,
-			&deadlineBytes,
-			&t.TaskPriority,
-			&t.TaskStatus,
-			&t.AssignedTo,
-			&t.ProjectId,
-			&t.CreatedBy,
-		)
-		if err != nil {
-			return nil, err
+	resp, err := taskRepo.dynamoCliet.Query(context.TODO(), input)
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	for _, item := range resp.Items {
+
+		var dynTask task.DynamoTask
+		if err := attributevalue.UnmarshalMap(item, &dynTask); err != nil {
+			return nil, fmt.Errorf("unmarshal failed: %w", err)
 		}
-		if len(deadlineBytes) > 0 {
-			t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes)) // if DATE type
+
+		var t task.Task
+		t.TaskId = dynTask.TaskId
+		t.Title = dynTask.Title
+		t.Description = dynTask.Description
+		t.AcceptanceCriteria = dynTask.AcceptanceCriteria
+		t.AssignedTo = dynTask.AssignedTo
+		t.ProjectId = dynTask.ProjectId
+		t.CreatedBy = dynTask.CreatedBy
+
+		if dynTask.Deadline != "" {
+			t.Deadline, err = util.ParseDate(dynTask.Deadline)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("deadline parse error: %w", err)
 			}
 		}
-		assignedTasks = append(assignedTasks, t)
+
+		t.TaskPriority, _ = Priority.PriorityParser(dynTask.TaskPriority)
+		t.TaskStatus, _ = status.GetStatusFromString(dynTask.TaskStatus)
+
+		tasks = append(tasks, t)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return assignedTasks, nil
+	return tasks, nil
 }
+
+
 
 func (taskRepo *TaskRepo) UpdateTaskStatus(empId string, taskId string, updatedStatus status.TaskStatus) error {
 	query := `UPDATE tasks 
@@ -262,35 +329,185 @@ func (taskRepo *TaskRepo)ViewAllAssignedTasksInProject(projectId string, empId s
 	return assignedTasks, nil
 }
 
-func(taskRepo *TaskRepo)UpdateTask(taskId string, updates map[string]interface{})error{
-	setClauses := []string{}
-    args := []interface{}{}
+func (r *TaskRepo) UpdateTask(projectId, taskId, managerId string, updates map[string]interface{}) error {
 
-    // Define the order of fields to ensure consistent placeholder and arg order
-    fields := []string{"title", "description", "acceptance_criteria", "deadline", "taskpriority", "assignesto"}
+   
+    pkManager := "USER#" + managerId
+    skManager := "PROJECT#" + projectId + "TASK#" + taskId
 
-    for _, field := range fields {
-        if value, exists := updates[field]; exists {
-            setClauses = append(setClauses, fmt.Sprintf("%s = ?", field))
-            args = append(args, value)
+    selectStmt := "SELECT * FROM " + r.tableName + " WHERE PK = ? AND SK = ?"
+
+    out, err := r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(selectStmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkManager},
+            &types.AttributeValueMemberS{Value: skManager},
+        },
+    })
+    if err != nil {
+        return err
+    }
+    if len(out.Items) == 0 {
+        return errors.New("task not found under manager")
+    }
+
+    var existing task.DynamoTask
+    err = attributevalue.UnmarshalMap(out.Items[0], &existing)
+    if err != nil {
+        return err
+    }
+
+    oldAssignedTo := existing.AssignedTo
+
+    
+    updateStmt := "UPDATE " + r.tableName + " SET "
+    params := []types.AttributeValue{}
+
+    modifiableFields := []string{
+        "Title",
+        "Description",
+        "AcceptanceCriteria",
+        "Deadline",
+        "TaskPriority",
+        "AssignedTo",
+		"TaskStatus",
+    }
+
+    for _, field := range modifiableFields {
+    if val, ok := updates[field]; ok {
+
+        // MUST wrap attribute names in double quotes
+        updateStmt += fmt.Sprintf("\"%s\" = ?, ", field)
+
+        params = append(params, &types.AttributeValueMemberS{
+            Value: fmt.Sprintf("%v", val),
+        })
+    }
+}
+
+    if len(params) == 0 {
+        return errors.New("no valid updates provided")
+    }
+
+    updateStmt = strings.TrimSuffix(updateStmt, ", ")
+    updateStmt += " WHERE PK = ? AND SK = ?"
+
+   
+    managerParams := append(params,
+        &types.AttributeValueMemberS{Value: pkManager},
+        &types.AttributeValueMemberS{Value: skManager},
+    )
+
+    _, err = r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement:  aws.String(updateStmt),
+        Parameters: managerParams,
+    })
+    if err != nil {
+        return err
+    }
+
+    
+    pkEmployee := "USER#" + oldAssignedTo
+    skEmployee := "TASK#PROJECT#" + projectId + "TASK#" + taskId
+
+    // Check if employee copy exists before updating
+    employeeSelectStmt := "SELECT * FROM " + r.tableName + " WHERE PK = ? AND SK = ?"
+    employeeOut, err := r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(employeeSelectStmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkEmployee},
+            &types.AttributeValueMemberS{Value: skEmployee},
+        },
+    })
+    if err != nil {
+        return err
+    }
+
+    // Only update employee copy if it exists
+    if len(employeeOut.Items) > 0 {
+        employeeParams := append(params,
+            &types.AttributeValueMemberS{Value: pkEmployee},
+            &types.AttributeValueMemberS{Value: skEmployee},
+        )
+
+        _, err = r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+            Statement:  aws.String(updateStmt),
+            Parameters: employeeParams,
+        })
+        if err != nil {
+            return err
         }
     }
 
-    if len(setClauses) == 0 {
-        return errors.New("no fields to update")
+   
+    newAssignedTo, assignedChanged := updates["AssignedTo"].(string)
+
+    if assignedChanged && newAssignedTo != oldAssignedTo {
+
+        // DELETE OLD EMPLOYEE COPY
+        deleteStmt := "DELETE FROM " + r.tableName + " WHERE PK = ? AND SK = ?"
+
+        _, err = r.dynamoCliet.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+            Statement: aws.String(deleteStmt),
+            Parameters: []types.AttributeValue{
+                &types.AttributeValueMemberS{Value: pkEmployee},
+                &types.AttributeValueMemberS{Value: skEmployee},
+            },
+        })
+        if err != nil {
+            return err
+        }
+
+        updatedTask := existing
+
+        for k, v := range updates {
+            switch k {
+            case "Title":
+                updatedTask.Title = v.(string)
+            case "Description":
+                updatedTask.Description = v.(string)
+            case "AcceptanceCriteria":
+                updatedTask.AcceptanceCriteria = v.(string)
+            case "Deadline":
+                updatedTask.Deadline = v.(string)
+            case "TaskPriority":
+                updatedTask.TaskPriority = v.(string)
+            case "AssignedTo":
+                updatedTask.AssignedTo = v.(string)
+			case "TaskStatus":
+                updatedTask.TaskStatus = v.(string)
+            }
+        }
+
+
+        newPK := "USER#" + newAssignedTo
+        newSK := "TASK#PROJECT#" + projectId + "TASK#" + taskId
+
+        updatedTask.PK = newPK
+        updatedTask.SK = newSK
+
+        item, err := attributevalue.MarshalMap(updatedTask)
+        if err != nil {
+            return err
+        }
+
+        // Use PutItem instead of INSERT for the new employee copy
+        _, err = r.dynamoCliet.PutItem(context.TODO(), &dynamodb.PutItemInput{
+            TableName: aws.String(r.tableName),
+            Item:      item,
+        })
+        if err != nil {
+            return err
+        }
     }
 
-    query := "UPDATE tasks SET " + strings.Join(setClauses, ", ") + " WHERE task_id = ?"
-	fmt.Println(query)
-    args = append(args, taskId)
+    return nil
+}
 
-	fmt.Println(args)
-	_,err := taskRepo.db.Exec(query, args...)
 
-	if err!=nil{
-		return err
-	}
-	return nil
+
+func(taskRepo *TaskRepo)UpdateTaskEmailId(taskId string,managerId string, updates map[string]interface{}) error{
+   return nil
 }
 
 

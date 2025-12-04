@@ -1,12 +1,17 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
-	"github.com/Yash-Watchguard/Tasknest/internal/config"
+	
 	"github.com/Yash-Watchguard/Tasknest/internal/model/comment"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type CommentRepo struct {
@@ -27,31 +32,46 @@ var (
 )
 
 func (cr *CommentRepo) ViewAllComments(taskId string) ([]comment.Comment, error) {
-	rows, err := cr.db.Query(
-		config.SelectQuery("comments", []string{"comment_id", "task_id", "created_by", "comment"}, "task_id"),
-		taskId,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
 
-	var comments []comment.Comment
-	for rows.Next() {
-		var c comment.Comment
-		err = rows.Scan(&c.CommentId, &c.TaskId, &c.CreatedBy, &c.Content)
-		if err != nil {
-			return nil, err
-		}
-		comments = append(comments, c)
-	}
+    skPrefix := fmt.Sprintf("TASK#%sCOMMENT#", taskId)
 
-	if len(comments) == 0 {
-		return nil, errors.New("no comments found for this task")
-	}
+    query := fmt.Sprintf("SELECT * FROM %s WHERE PK = ? AND begins_with(SK, ?)", cr.tableName)
 
-	return comments, nil
+    out, err := cr.dynamoClient.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(query),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: "COMMENTS"},  
+            &types.AttributeValueMemberS{Value: skPrefix},    
+        },
+    })
+
+    if err != nil {
+        return nil, err
+    }
+
+    if len(out.Items) == 0 {
+        return nil, errors.New("no comments found for this task")
+    }
+
+    comments := make([]comment.Comment, 0, len(out.Items))
+    for _, item := range out.Items {
+        var dc comment.DynamoComment
+        if err := attributevalue.UnmarshalMap(item, &dc); err != nil {
+            return nil, err
+        }
+
+        c := comment.Comment{
+            CommentId: dc.CommentId,
+            TaskId:    dc.TaskId,
+            CreatedBy: dc.CreatedBy,
+            Content:   dc.Content,
+        }
+        comments = append(comments, c)
+    }
+
+    return comments, nil
 }
+
 
 func (cr *CommentRepo) UpdateComment(updatedComment comment.Comment) error {
 	var existingCreatedBy, existingTaskId string
@@ -94,18 +114,38 @@ func (cr *CommentRepo) UpdateComment(updatedComment comment.Comment) error {
 }
 
 func (cr *CommentRepo) AddComment(newComment comment.Comment) error {
-	// Prepare the INSERT query
-	query := `
-        INSERT INTO comments (comment_id, task_id, created_by, comment)
-        VALUES (?, ?, ?, ?)
-    `
 
-	_, err := cr.db.Exec(query, newComment.CommentId, newComment.TaskId, newComment.CreatedBy, newComment.Content)
-	if err != nil {
-		return err
-	}
-	return nil
+    sk := fmt.Sprintf("TASK#%sCOMMENT#%s", newComment.TaskId, newComment.CommentId)
+
+    query := `
+        INSERT INTO ` + cr.tableName + ` VALUE {
+            'PK': ?,
+            'SK': ?,
+            'CommentId': ?,
+            'Content': ?,
+            'CreatedBy': ?,
+            'TaskId': ?
+        }
+    `
+    _, err := cr.dynamoClient.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(query),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: "COMMENTS"},                 // PK
+            &types.AttributeValueMemberS{Value: sk},                         // SK
+            &types.AttributeValueMemberS{Value: newComment.CommentId},       // CommentId
+            &types.AttributeValueMemberS{Value: newComment.Content},         // Content
+            &types.AttributeValueMemberS{Value: newComment.CreatedBy},       // CreatedBy
+            &types.AttributeValueMemberS{Value: newComment.TaskId},          // TaskId
+        },
+    })
+
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
+
 
 func (cr *CommentRepo) DeleteComment(userId, commentId string) error {
 	// Delete query with condition on comment_id and created_by

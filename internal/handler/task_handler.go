@@ -307,14 +307,13 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		response.ErrorResponse(w, http.StatusForbidden, "Unauthorized to delete tasks", 403)
 		return
 	}
-
 	if projectId == "" || taskId == "" {
 		logger.Error("missing project_id or task_id in request")
 		response.ErrorResponse(w, http.StatusBadRequest, "Missing project_id or task_id", 400)
 		return
 	}
 
-	if err := th.taskService.DeleteTask(managerId, taskId); err != nil {
+	if err := th.taskService.DeleteTask(managerId, taskId,"","",); err != nil {
 		logger.Error("failed to delete task")
 		response.ErrorResponse(w, http.StatusInternalServerError, "Failed to delete task", 500)
 		return
@@ -325,9 +324,7 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
-
-	// apply rbac
-	// first get the task by task_id so write the function that get the only single task from the tasks
+	
 	userId := r.Context().Value(ContextKey.UserId).(string)
 	taskId := r.PathValue("task_id")
 
@@ -358,7 +355,9 @@ func (th *TaskHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 
 func(th *TaskHandler) UpdateTask(w http.ResponseWriter,r* http.Request){
 
+	 projectId := r.PathValue("project_id")
 	 taskId:=r.PathValue("task_id");
+	 managerId := r.Context().Value(ContextKey.UserId).(string)
 
 	 var updates map[string]interface{}
 
@@ -367,12 +366,12 @@ func(th *TaskHandler) UpdateTask(w http.ResponseWriter,r* http.Request){
 		return
 	 }
 
-	 err:=th.taskService.UpdateTask(taskId,updates)
+	 err:=th.taskService.UpdateTask(projectId,taskId,managerId,updates)
 
 	 if err!=nil{
         response.ErrorResponse(w,http.StatusInternalServerError,err.Error(),1000)
 		return
 	 }
      response.SuccessResponse(w,nil,"Task Updated SuccessFully",http.StatusOK)
-	 
+
 }

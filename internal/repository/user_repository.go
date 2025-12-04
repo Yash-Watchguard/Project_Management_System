@@ -98,7 +98,7 @@ func (repo *UserRepo) SaveUser(newUser *user.User) error {
 
 func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, error) {
 
-	// Trim email to avoid mismatch
+
 	email = strings.TrimSpace(email)
 
 	keyMap := map[string]types.AttributeValue{
@@ -106,7 +106,7 @@ func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, e
 		"SK": &types.AttributeValueMemberS{Value: email},
 	}
 
-	// Query item
+
 	response, err := repo.DynmoDbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(repo.TableName),
 		Key:       keyMap,
@@ -157,22 +157,47 @@ func (repo *UserRepo) IsUserPresent(name, email, password string) (*user.User, e
 
 func (repo *UserRepo) ViewProfile(userId string) ([]user.User, error) {
 
-	query := config.SelectQuery("users", []string{"id", "name", "email", "role", "phone_number"}, "id")
+    input := &dynamodb.ScanInput{
+        TableName: aws.String(repo.TableName),
+        FilterExpression: aws.String("Id = :id"),
+        ExpressionAttributeValues: map[string]types.AttributeValue{
+            ":id": &types.AttributeValueMemberS{Value: userId},
+        },
+    }
 
-	row := repo.db.QueryRow(query, userId)
+    out, err := repo.DynmoDbClient.Scan(context.TODO(), input)
+    if err != nil {
+        return nil, err
+    }
 
-	var u user.User
-	var user []user.User
-	err := row.Scan(&u.Id, &u.Name, &u.Email, &u.Role, &u.PhoneNumber)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("user not found")
-		}
-		return nil, err
-	}
-	user = append(user, u)
-	return user, nil
+    if len(out.Items) == 0 {
+        return nil, fmt.Errorf("user not found with Id: %s", userId)
+    }
+
+    var users []user.User
+    for _, item := range out.Items {
+        var du user.DynamoDbUserResponse
+        if err := attributevalue.UnmarshalMap(item, &du); err != nil {
+            return nil, err
+        }
+
+        u := user.User{
+            Id:          du.Id,
+            Role:        roles.RoleParserStringToRole(du.Role),
+            Name:        du.Name,
+            Password:    du.Password,
+            PhoneNumber: du.Phonenumber,
+            Email:       du.SK,
+            Status:      user.UserStatus(du.Status),
+        }
+
+        users = append(users, u)
+    }
+
+    return users, nil
 }
+
+
 
 func (repo *UserRepo) GetAllUsers() ([]user.User, error) {
 	query := `SELECT id, name, email, role, phone_number FROM users WHERE status='Active'`
