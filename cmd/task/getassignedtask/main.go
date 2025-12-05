@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/config"
 	"github.com/Yash-Watchguard/Tasknest/internal/logger"
@@ -61,12 +62,14 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	newTasks, err := taskService.GetAssigenedTask(empId)
 	
 	if err != nil {
+fmt.Print(newTasks)
 		logger.Error("error getting the tasks: " + err.Error())
 		return response.LambdaErrorResponse(nil, "Error in fetching the tasks", 500, 500), nil
 	}
 
 	if len(newTasks) == 0 {
 		logger.Info("No task assigned")
+		
 		return response.LambdaErrorResponse(nil, "No task Assigned", 404, 404), nil
 	}
 

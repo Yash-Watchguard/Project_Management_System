@@ -144,3 +144,57 @@ Resources:
             Path: /employees/{emp_id}/tasksy
             RestApiId:
               Ref: Api
+  GetAllProjectTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: GetAllProjectTask
+    Properties:
+      CodeUri: GetAllProjectTask
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /creator/{creator_id}/projects/{project_id}
+            RestApiId:
+              Ref: Api
+  PromoteEmployee:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: PromoteEmployee
+    Properties:
+      CodeUri: PromoteEmployee
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: patch
+            Path: /users/promote/{user_email}
+            RestApiId:
+              Ref: Api
+  DeleteProject:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: DeleteProject
+    Properties:
+      CodeUri: DeleteProject
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /project/{project_id}/assigned/{manager_id}/delete
+            RestApiId:
+              Ref: Api

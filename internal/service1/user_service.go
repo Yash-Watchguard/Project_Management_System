@@ -119,9 +119,9 @@ func (us *UserService) UpdateUser(id string, updates map[string]interface{}) err
 
 
 
-func (u * UserService) PromoteEmployee( employeeId string) error {
+func (u * UserService) PromoteEmployee( email string) error {
 	
-	return u.userRepo.PromoteEmployee(employeeId)
+	return u.userRepo.PromoteEmployee(email)
 }
 func(u *UserService)ViewAllEmplpyee(ctx context.Context)([]user.User,error){
 	userRole:=ctx.Value(ContextKey.UserRole).(roles.Role)

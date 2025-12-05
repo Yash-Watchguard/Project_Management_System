@@ -10,7 +10,7 @@ type TaskRepo interface {
 	DeleteTask(projectId,taskId,managerId,empId string)error
 	ViewAssignedTask(empId string)([]task.Task,error)
 	UpdateTaskStatus(userId string,empId string,updatedStatus status.TaskStatus)(error)
-	ViewAllAssignedTasksInProject(projectId string,empId string)([]task.Task,error)
+	ViewAllTasksInProject(projectId string,creatorId string)([]task.Task,error)
 	ViewAllManagerTask(managerId string)([]task.Task,error)
 	UpdateTask(projecId,taskId string,managerId string,updatedfields map[string]interface{})(error)
 	UpdateTaskEmailId(taskId string,managerId string, updates map[string]interface{}) error

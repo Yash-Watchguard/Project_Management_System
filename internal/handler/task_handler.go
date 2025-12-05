@@ -127,7 +127,7 @@ func (th *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	newTasks, err := th.taskService.ViewAllAssignedTasksInProject(projectId, userId)
+	newTasks, err := th.taskService.ViewAllTasksInProject(projectId, userId)
 	if err != nil {
 		logger.Error("error getting the tasks")
 		response.ErrorResponse(w, http.StatusInternalServerError, "Error in fetching the tasks", 500)

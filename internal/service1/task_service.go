@@ -21,7 +21,7 @@ type TaskServiceInterface interface{
 	DeleteTask(projectId,taskId,managerId string,empId string)error
 	GetAssigenedTask(empId string)([]task.Task,error)
 	UpdateTaskStatus(userId string,taskId string,updatedStatus status.TaskStatus)error
-	ViewAllAssignedTasksInProject(projectId string,emp string)([]task.Task,error)
+	ViewAllTasksInProject(projectId string,emp string)([]task.Task,error)
 	GetAllManagerTask(managerId string)([]task.Task,error)
 	UpdateTask(projectId,taskId string,managerId string,updates map[string]interface{})error
 	
@@ -60,8 +60,8 @@ func(ts *TaskService)UpdateTaskStatus(userId string,taskId string,updatedStatus 
 	return ts.taskRepo.UpdateTaskStatus(userId,taskId,updatedStatus)
 }
 
-func(ts *TaskService)ViewAllAssignedTasksInProject(projectId string,emp string)([]task.Task,error){
-	return ts.taskRepo.ViewAllAssignedTasksInProject(projectId,emp)
+func(ts *TaskService)ViewAllTasksInProject(projectId string,creator_id string)([]task.Task,error){
+	return ts.taskRepo.ViewAllTasksInProject(projectId,creator_id)
 }
 
 func(ts *TaskService)UpdateTask(projectId,taskId string,managerId string,updates map[string]interface{})error{

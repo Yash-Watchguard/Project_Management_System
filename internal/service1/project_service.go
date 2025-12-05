@@ -13,7 +13,7 @@ import (
 type ProjectServiceInterface interface{
    AddProject(project project.Project) error
    ViewAllProjects() ([]project.Project, error)
-   DeleteProject( projectID string) error
+   DeleteProject( creatorId,managerId,projectID string) error
    ViewAssignedProject(userId string)([]project.Project,error)
 }
 
@@ -33,9 +33,9 @@ func (ps *ProjectService) ViewAllProjects() ([]project.Project, error) {
 	return ps.projectRepo.ViewAllProjects()
 }
 
-func (ps *ProjectService) DeleteProject( projectID string) error {
+func (ps *ProjectService) DeleteProject( creatorId,managerId,projectID string) error {
 	
-	return ps.projectRepo.DeleteProject(projectID)
+	return ps.projectRepo.DeleteProject(creatorId,managerId,projectID)
 	
 }
 func (ps *ProjectService) ViewAssignedProject(userId string)([]project.Project,error){

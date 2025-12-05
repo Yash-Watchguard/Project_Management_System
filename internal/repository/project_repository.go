@@ -2,19 +2,28 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
-	"errors"
-    "time"
-    "strings"
+	"fmt"
+	"time"
+
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
+	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type ProjectRepo struct {
 	db *sql.DB
+    dynamoDb dynamodb.Client
+    tableName string
+    taskRepo TaskRepo
 }
 
-func NewProjectRepo(db *sql.DB) *ProjectRepo {
-	return &ProjectRepo{db: db}
+func NewProjectRepo(db *dynamodb.Client,tablename string, taskRepo TaskRepo) *ProjectRepo {
+	return &ProjectRepo{dynamoDb: *db,tableName: tablename ,taskRepo: taskRepo}
 }
 
 func (pr *ProjectRepo) AddProject(newProject project.Project) error {
@@ -66,44 +75,69 @@ func (pr *ProjectRepo) ViewAllProjects() ([]project.Project, error) {
     return projects, nil
 }
 
-func (pr *ProjectRepo) DeleteProject(projectID string) error {
-   
-    projectID = strings.TrimSpace(projectID)
+func (pr *ProjectRepo) DeleteProject(creatorId, managerId, projectID string) error {
+	ctx := context.TODO()
 
- 
-    var existsInt int
-    checkQuery := `SELECT EXISTS(SELECT 1 FROM projects WHERE project_id = ?)`
-    err := pr.db.QueryRow(checkQuery, projectID).Scan(&existsInt)
-    if err != nil {
-        return errors.New("failed to check project existence")
-    }
-    if existsInt == 0 {
-        return errors.New("project not found")
-    }
+	creatorPk := fmt.Sprintf("USER#%s", creatorId)
+	creatorSk := fmt.Sprintf("PROJECT#%s", projectID)
 
-    
-    _, err = pr.db.Exec(`DELETE FROM tasks WHERE projectid = ?`, projectID)
-    if err != nil {
-        return errors.New("failed to delete tasks for the project")
-    }
+	_, err := pr.dynamoDb.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(pr.tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: creatorPk},
+			"SK": &types.AttributeValueMemberS{Value: creatorSk},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error deleting creator project: %v", err)
+	}
 
-    // 3️⃣ Delete the project itself
-    result, err := pr.db.Exec(`DELETE FROM projects WHERE project_id = ?`, projectID)
-    if err != nil {
-        return errors.New("failed to delete project")
-    }
+	managerPk := fmt.Sprintf("USER#%s", managerId)
+	managerSk := fmt.Sprintf("ASSIGNED#PROJECT#%s", projectID)
 
-    // 4️⃣ Verify that the deletion affected a row
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return errors.New("failed to get rows affected")
-    }
-    if rowsAffected == 0 {
-        return errors.New("no project deleted")
-    }
+	_, err = pr.dynamoDb.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(pr.tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: managerPk},
+			"SK": &types.AttributeValueMemberS{Value: managerSk},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error deleting manager project: %v", err)
+	}
 
-    return nil
+	taskPrefix := fmt.Sprintf("PROJECT#%s#TASK#", projectID)
+	creatorPk = fmt.Sprintf("USER#%s", managerId)
+
+	queryOutput, err := pr.dynamoDb.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(pr.tableName),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: creatorPk},
+			":sk": &types.AttributeValueMemberS{Value: taskPrefix},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error querying tasks: %v", err)
+	}
+
+	tasks := []task.DynamoTask{}
+	err = attributevalue.UnmarshalListOfMaps(queryOutput.Items, &tasks)
+	if err != nil {
+		return fmt.Errorf("task unmarshal error: %v", err)
+	}
+
+	for _, t := range tasks {
+		fmt.Println(t)
+		err = pr.taskRepo.DeleteTask(projectID, t.TaskId, t.CreatedBy, t.AssignedTo)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
+
 
 
 

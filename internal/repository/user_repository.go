@@ -334,25 +334,42 @@ func (ur *UserRepo) UpdateProfile(userId string, updates map[string]interface{})
 	return nil
 }
 
-func (ur *UserRepo) PromoteEmployee(employeeId string) error {
+func (ur *UserRepo) PromoteEmployee(email string) error {
 
-	query := "UPDATE users SET role = ? WHERE id = ?"
-	result, err := ur.db.Exec(query, roles.Manager, employeeId)
+	pk := "USER"
+	sk := "USER#" + email
+
+	// Updated PartiQL Query
+	query := `
+        UPDATE ` + ur.TableName + `
+        SET Role = ?
+        WHERE PK = ? AND SK = ?
+    `
+
+	resp, err := ur.DynmoDbClient.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(query),
+		Parameters: []types.AttributeValue{
+			&types.AttributeValueMemberS{Value: "Manager"}, 
+			&types.AttributeValueMemberS{Value: pk},
+			&types.AttributeValueMemberS{Value: sk},
+		},
+		
+		ReturnConsumedCapacity: types.ReturnConsumedCapacityTotal,
+	})
 	if err != nil {
-		return err
+		return fmt.Errorf("dynamodb update error: %w", err)
 	}
 
-	// Check if any row was updated
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
+	if resp.ConsumedCapacity == nil || 
+	   resp.ConsumedCapacity.CapacityUnits == nil ||
+	   *resp.ConsumedCapacity.CapacityUnits == 0 {
 		return errors.New("user not found")
 	}
 
 	return nil
 }
+
+
 func (ur *UserRepo) ViewAllEmployee() ([]user.User, error) {
 	// Build SELECT query to get all employees
 	query := config.SelectQuery("users", []string{"id", "name", "email", "role", "phone_number", "password"}, "role", "status")

@@ -251,7 +251,7 @@ func (ph *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) 
     }
 
     
-    err := ph.projectService.DeleteProject(projectId)
+    err := ph.projectService.DeleteProject(projectId,"","")
     if err != nil {
         logger.Error("error deleting project ")
         response.ErrorResponse(w, http.StatusInternalServerError, "Failed to delete project",500)

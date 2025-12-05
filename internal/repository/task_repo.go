@@ -1,6 +1,7 @@
 package repository
 
 import (
+
 	"context"
 	"database/sql"
 	"errors"
@@ -11,7 +12,6 @@ import (
 	Priority "github.com/Yash-Watchguard/Tasknest/internal/model/priority"
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
 	status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
-	"github.com/Yash-Watchguard/Tasknest/internal/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -239,7 +239,7 @@ func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
 		t.CreatedBy = dynTask.CreatedBy
 
 		if dynTask.Deadline != "" {
-			t.Deadline, err = util.ParseDate(dynTask.Deadline)
+			t.Deadline, err = time.Parse(time.RFC3339, dynTask.Deadline)
 			if err != nil {
 				return nil, fmt.Errorf("deadline parse error: %w", err)
 			}
@@ -278,55 +278,55 @@ func (taskRepo *TaskRepo) UpdateTaskStatus(empId string, taskId string, updatedS
 	return nil
 }
 
-func (taskRepo *TaskRepo)ViewAllAssignedTasksInProject(projectId string, empId string) ([]task.Task, error) {
-	var assignedTasks []task.Task
+func (taskRepo *TaskRepo)ViewAllTasksInProject(projectId string, creator string) ([]task.Task, error) {
+	var tasks []task.Task
 
-	query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby 
-              FROM tasks 
-              WHERE projectid = ? AND assignesto = ?`
+	pk := fmt.Sprintf("USER#%s", creator)
 
-	rows, err := taskRepo.db.Query(query, projectId, empId)
-	if err != nil {
-		return nil, err
+	input := &dynamodb.QueryInput{
+		TableName: aws.String(taskRepo.tableName),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :skPrefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk":       &types.AttributeValueMemberS{Value: pk},
+			":skPrefix": &types.AttributeValueMemberS{Value: "PROJECT#"+projectId},
+		},
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var t task.Task
-		var deadlineBytes []byte
+	resp, err := taskRepo.dynamoCliet.Query(context.TODO(), input)
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
 
-		err := rows.Scan(
-			&t.TaskId,
-			&t.Title,
-			&t.Description,
-			&t.AcceptanceCriteria,
-			&deadlineBytes,
-			&t.TaskPriority,
-			&t.TaskStatus,
-			&t.AssignedTo,
-			&t.ProjectId,
-			&t.CreatedBy,
-		)
-		if err != nil {
-			return nil, err
+	for _, item := range resp.Items {
+
+		var dynTask task.DynamoTask
+		if err := attributevalue.UnmarshalMap(item, &dynTask); err != nil {
+			return nil, fmt.Errorf("unmarshal failed: %w", err)
 		}
 
-		// Parse deadline safely
-		if len(deadlineBytes) > 0 {
-			t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes))
+		var t task.Task
+		t.TaskId = dynTask.TaskId
+		t.Title = dynTask.Title
+		t.Description = dynTask.Description
+		t.AcceptanceCriteria = dynTask.AcceptanceCriteria
+		t.AssignedTo = dynTask.AssignedTo
+		t.ProjectId = dynTask.ProjectId
+		t.CreatedBy = dynTask.CreatedBy
+
+		if dynTask.Deadline != "" {
+			t.Deadline, err = time.Parse(time.RFC3339, dynTask.Deadline)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("deadline parse error: %w", err)
 			}
 		}
 
-		assignedTasks = append(assignedTasks, t)
+		t.TaskPriority, _ = Priority.PriorityParser(dynTask.TaskPriority)
+		t.TaskStatus, _ = status.GetStatusFromString(dynTask.TaskStatus)
+
+		tasks = append(tasks, t)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return assignedTasks, nil
+	return tasks, nil
 }
 
 func (r *TaskRepo) UpdateTask(projectId, taskId, managerId string, updates map[string]interface{}) error {

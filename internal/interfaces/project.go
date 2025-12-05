@@ -8,5 +8,5 @@ type ProjectRepository interface {
 	AddProject(newProject project.Project)error
 	ViewAllProjects()([]project.Project,error)
 	ViewAssignedProject(userId string)([]project.Project,error)
-	DeleteProject(projectID string) error
+	DeleteProject(creatorId,managerId,projectID string) error
 }
