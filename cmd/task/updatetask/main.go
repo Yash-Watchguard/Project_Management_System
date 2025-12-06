@@ -23,7 +23,7 @@ func init() {
 }
 
 func main() {
-     lambda.Start(middleware.LambdaAuthMiddleWare(handler))
+     lambda.Start(middleware.WithCORS(middleware.LambdaAuthMiddleWare(handler)))
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

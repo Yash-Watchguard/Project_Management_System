@@ -198,3 +198,33 @@ Resources:
             Path: /project/{project_id}/assigned/{manager_id}/delete
             RestApiId:
               Ref: Api
+  ViewAllManagerTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: ViewAllManagerTask
+    Properties:
+      CodeUri: ViewAllManagerTask
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /projects/managers/{manager_id}/tasks
+            RestApiId:
+              Ref: Api
+  GetProjectStatus:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: GetProjectStatus
+    Properties:
+      CodeUri: GetProjectStatus
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /projects/{project_id}/status/creator/{creator_id}
+            RestApiId:
+              Ref: Api

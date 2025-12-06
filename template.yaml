@@ -142,8 +142,7 @@ Resources:
           Properties:
             Method: get
             Path: /employees/{emp_id}/tasksy
-            RestApiId:
-              Ref: Api
+            RestApiId: !Ref Api
 
   GetAllProjectTask:
     Type: AWS::Serverless::Function
@@ -161,8 +160,7 @@ Resources:
           Properties:
             Method: get
             Path: /creator/{creator_id}/projects/{project_id}
-            RestApiId:
-              Ref: Api
+            RestApiId: !Ref Api
 
   PromoteEmployee:
     Type: AWS::Serverless::Function
@@ -180,8 +178,7 @@ Resources:
           Properties:
             Method: patch
             Path: /users/promote/{user_email}
-            RestApiId:
-              Ref: Api
+            RestApiId: !Ref Api
 
   DeleteProject:
     Type: AWS::Serverless::Function
@@ -199,5 +196,36 @@ Resources:
           Properties:
             Method: delete
             Path: /project/{project_id}/assigned/{manager_id}/delete
-            RestApiId:
-              Ref: Api
+            RestApiId: !Ref Api
+
+  ViewAllManagerTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: ViewAllManagerTask
+    Properties:
+      CodeUri: ./cmd/task/getallmangerTask
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /projects/managers/{manager_id}/tasks
+            RestApiId: !Ref Api
+
+  GetProjectStatus:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: GetProjectStatus
+    Properties:
+      CodeUri: ./cmd/project/getprojectstatus
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /projects/{project_id}/status/creator/{creator_id}
+            RestApiId: !Ref Api
+
+  

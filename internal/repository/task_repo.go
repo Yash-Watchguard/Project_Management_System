@@ -29,42 +29,53 @@ func NewTaskRepo(dynamoCliet *dynamodb.Client,tableName string) *TaskRepo {
 }
 
 func(taskRepo *TaskRepo)ViewAllManagerTask(managerId string)([]task.Task,error){
-    query:=`SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby
-              FROM tasks WHERE createdby = ?`
-		rows, err := taskRepo.db.Query(query, managerId)
-	if err != nil {
-		return nil, err
+   var tasks []task.Task
+
+	pk := fmt.Sprintf("USER#%s", managerId)
+
+	input := &dynamodb.QueryInput{
+		TableName: aws.String(taskRepo.tableName),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :skPrefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk":       &types.AttributeValueMemberS{Value: pk},
+			":skPrefix": &types.AttributeValueMemberS{Value: "PROJECT#"},
+		},
 	}
-	defer rows.Close()	 
-	var projectTasks []task.Task
-	for rows.Next() {
-		var t task.Task
-		var deadlineBytes []byte
-		err := rows.Scan(
-			&t.TaskId,
-			&t.Title,
-			&t.Description,
-			&t.AcceptanceCriteria,
-			&deadlineBytes,
-			&t.TaskPriority,
-			&t.TaskStatus,
-			&t.AssignedTo,
-			&t.ProjectId,
-			&t.CreatedBy,
-		)
-		if err != nil {
-			return nil, err
+
+	resp, err := taskRepo.dynamoCliet.Query(context.TODO(), input)
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	for _, item := range resp.Items {
+
+		var dynTask task.DynamoTask
+		if err := attributevalue.UnmarshalMap(item, &dynTask); err != nil {
+			return nil, fmt.Errorf("unmarshal failed: %w", err)
 		}
-		if len(deadlineBytes) > 0 {
-			t.Deadline, err = time.Parse("2006-01-02", string(deadlineBytes))
+
+		var t task.Task
+		t.TaskId = dynTask.TaskId
+		t.Title = dynTask.Title
+		t.Description = dynTask.Description
+		t.AcceptanceCriteria = dynTask.AcceptanceCriteria
+		t.AssignedTo = dynTask.AssignedTo
+		t.ProjectId = dynTask.ProjectId
+		t.CreatedBy = dynTask.CreatedBy
+
+		if dynTask.Deadline != "" {
+			t.Deadline, err = time.Parse(time.RFC3339, dynTask.Deadline)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("deadline parse error: %w", err)
 			}
 		}
-		projectTasks = append(projectTasks, t)
-	}
-	return projectTasks, nil
 
+		t.TaskPriority, _ = Priority.PriorityParser(dynTask.TaskPriority)
+		t.TaskStatus, _ = status.GetStatusFromString(dynTask.TaskStatus)
+
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
 }
 func (taskRepo *TaskRepo) ViewAllTask(projectId string) ([]task.Task, error) {
 	query := `SELECT task_id, title, description, acceptance_criteria, deadline, taskpriority, taskstatus, assignesto, projectid, createdby
@@ -228,7 +239,8 @@ func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
 		if err := attributevalue.UnmarshalMap(item, &dynTask); err != nil {
 			return nil, fmt.Errorf("unmarshal failed: %w", err)
 		}
-
+        
+		status,_:= status.GetStatusFromString(dynTask.TaskStatus)
 		var t task.Task
 		t.TaskId = dynTask.TaskId
 		t.Title = dynTask.Title
@@ -237,6 +249,7 @@ func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
 		t.AssignedTo = dynTask.AssignedTo
 		t.ProjectId = dynTask.ProjectId
 		t.CreatedBy = dynTask.CreatedBy
+		t.TaskStatus= status
 
 		if dynTask.Deadline != "" {
 			t.Deadline, err = time.Parse(time.RFC3339, dynTask.Deadline)
@@ -246,7 +259,6 @@ func (taskRepo *TaskRepo) ViewAssignedTask(empId string) ([]task.Task, error) {
 		}
 
 		t.TaskPriority, _ = Priority.PriorityParser(dynTask.TaskPriority)
-		t.TaskStatus, _ = status.GetStatusFromString(dynTask.TaskStatus)
 
 		tasks = append(tasks, t)
 	}

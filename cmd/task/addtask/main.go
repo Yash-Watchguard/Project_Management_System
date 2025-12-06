@@ -37,7 +37,7 @@ func init() {
 }
 
 func main() {
-	lambda.Start(middleware.LambdaAuthMiddleWare(handler))
+	lambda.Start(middleware.WithCORS(middleware.LambdaAuthMiddleWare(handler)))
 }
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
        projectId := request.PathParameters["project_id"]

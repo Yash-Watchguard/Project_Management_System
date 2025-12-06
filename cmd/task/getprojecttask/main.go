@@ -31,7 +31,7 @@ func init() {
 }
 
 func main(){
-lambda.Start(middleware.LambdaAuthMiddleWare(handler))
+lambda.Start(middleware.WithCORS(middleware.LambdaAuthMiddleWare(handler)))
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -55,7 +55,6 @@ fmt.Print(newTasks)
 		return response.LambdaErrorResponse(nil, "No task Assigned", 404, 404), nil
 	}
 
-	// Convert tasks to DTO
 	var tasks []model.TaskDto
 	for _, t := range newTasks {
 		tasks = append(tasks, model.TaskDto{

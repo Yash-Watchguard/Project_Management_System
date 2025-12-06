@@ -16,11 +16,24 @@ func GetStatusString(status TaskStatus) string {
 }
 func GetStatusFromString(statusStr string) (TaskStatus, error) {
 	switch statusStr {
-	case "pending":
+	case "Pending":
 		return Pending, nil
-	case "in progress":
+	case "In Progress":
 		return InProgress, nil
-	case "done":
+	case "Done":
+		return Done, nil
+	default:
+		return Pending, errors.New("invalid status")
+	}
+}
+
+func GetStatusFromString1(statusStr string) (TaskStatus, error) {
+	switch statusStr {
+	case "Pending":
+		return Pending, nil
+	case "In Progress":
+		return InProgress, nil
+	case "Done":
 		return Done, nil
 	default:
 		return Pending, errors.New("invalid status")

@@ -7,7 +7,7 @@ import (
 	"github.com/Yash-Watchguard/Tasknest/internal/interfaces"
 
 	Priority "github.com/Yash-Watchguard/Tasknest/internal/model/priority"
-	Status "github.com/Yash-Watchguard/Tasknest/internal/model/task_status"
+	
 	"github.com/Yash-Watchguard/Tasknest/internal/util"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/task"
@@ -74,11 +74,8 @@ func(ts *TaskService)UpdateTask(projectId,taskId string,managerId string,updates
 	 }
 	 if status,ok:=updates["status"].(string);ok{
 		if len(status)!=0 {
-			newStatus,err:=Status.GetStatusFromString(status)
-			if err!=nil {
-				return errors.New("invalid status")
-			}
-			finalUpdates["TaskStatus"]=Status.GetStatusString(newStatus)
+			
+			finalUpdates["TaskStatus"]=status
 		}
 	 }
 	 if description,ok:=updates["description"].(string);ok{

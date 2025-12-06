@@ -1,22 +1,43 @@
 package middleware
 
-import "net/http"
+import (
+	"context"
 
-func CorsMiddleWare(next http.Handler)http.Handler{
-	return http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-		// set cors headers
+	"github.com/aws/aws-lambda-go/events"
+)
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS, DELETE")
-
-		// Handle preflight request
-        if r.Method == http.MethodOptions {
-            w.WriteHeader(http.StatusOK)
-            return
-        }
-
-		// Call next handler
-        next.ServeHTTP(w, r)
-	})
+var defaultHeaders = map[string]string{
+	"Access-Control-Allow-Origin":  "*",
+	"Access-Control-Allow-Headers": "Content-Type,Authorization",
+	"Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,PATCH,DELETE",
+}
+ 
+func WithCORS(
+	fn func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error),
+) func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		if req.HTTPMethod == "OPTIONS" {
+			return events.APIGatewayProxyResponse{
+				StatusCode: 200,
+				Headers:    cloneHeaders(nil),
+			}, nil
+		}
+ 
+		res, err := fn(ctx, req)
+		res.Headers = cloneHeaders(res.Headers)
+		return res, err
+	}
+}
+ 
+func cloneHeaders(existing map[string]string) map[string]string {
+	headers := make(map[string]string, len(defaultHeaders))
+	for k, v := range defaultHeaders {
+		headers[k] = v
+	}
+ 
+	for k, v := range existing {
+		headers[k] = v
+	}
+ 
+	return headers
 }
