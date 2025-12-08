@@ -227,27 +227,22 @@ func (repo *UserRepo) GetAllUsers() ([]user.User, error) {
 	return users, nil
 }
 
-func (ur *UserRepo) DeleteUserById(userId string) error {
-	// Build delete query
-	query := config.DeleteQuery("users", []string{"id"}) // DELETE FROM users WHERE id = ?
+func (ur *UserRepo) DeleteUserById(email string) error {
+    sk := "USER#" + email
 
-	// Execute query
-	result, err := ur.db.Exec(query, userId)
-	if err != nil {
-		return errors.New("please enter valid user id")
-	}
+    stmt := `
+        DELETE FROM "` + ur.TableName + `"
+        WHERE PK = 'USER' AND SK = ?
+    `
+    
+    _, err := ur.DynmoDbClient.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(stmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: sk},
+        },
+    })
 
-	// Check if any row was actually deleted
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return errors.New("please enter valid user id")
-	}
-
-	return nil
+    return err
 }
 
 func (ur *UserRepo) GetAllManager() ([]user.User, error) {

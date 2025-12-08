@@ -18,7 +18,7 @@ import (
 type UserServiceInterface interface{
     ViewProfile( userId string) ([]user.User, error)
     ViewAllUsers() ([]user.User, error)
-    DeleteUser(userId string) error
+    DeleteUser(email string) error
     GetAllManager(ctx context.Context) ([]user.User,error)
     UpdateUser(id string, updates map[string]interface{}) error
     PromoteEmployee( employeeId string) error
@@ -42,9 +42,7 @@ func (u *UserService) ViewAllUsers() ([]user.User, error) {
 	return u.userRepo.GetAllUsers()
 }
 func (u * UserService) DeleteUser(userId string) error {
-        mp:=make(map[string]interface{})
-        mp["status"]="InActive"
-		return u.userRepo.UpdateProfile(userId,mp)
+       return u.userRepo.DeleteUserById(userId)
 }
 
 func (u *UserService) GetAllManager(ctx context.Context) ([]user.User,error) {

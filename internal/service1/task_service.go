@@ -24,6 +24,7 @@ type TaskServiceInterface interface{
 	ViewAllTasksInProject(projectId string,emp string)([]task.Task,error)
 	GetAllManagerTask(managerId string)([]task.Task,error)
 	UpdateTask(projectId,taskId string,managerId string,updates map[string]interface{})error
+	GetSingleTask(creatorId,projectId,taskId string)([]task.Task,error)
 	
 }
 type TaskService struct{
@@ -116,6 +117,10 @@ func(ts *TaskService)UpdateTask(projectId,taskId string,managerId string,updates
 	 
 }
 return ts.taskRepo.UpdateTask(projectId,taskId,managerId,finalUpdates)
+}
+
+func(ts *TaskService)GetSingleTask(creatorId , projectId , taskId string)([]task.Task,error){
+	return ts.taskRepo.GetSingleTask(creatorId,projectId,taskId)
 }
 
 

@@ -4,7 +4,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Yash-Watchguard/Tasknest/internal/model/project"
@@ -26,6 +28,163 @@ func NewProjectRepo(db *dynamodb.Client,tablename string, taskRepo TaskRepo) *Pr
 	return &ProjectRepo{dynamoDb: *db,tableName: tablename ,taskRepo: taskRepo}
 }
 
+func (pr *ProjectRepo)UpdateProject(projectId,creatorId,managerId string,updates map[string]any)error{
+
+    pkCreator := "USER#" + creatorId
+    skCreator := "PROJECT#" + projectId
+
+    selectStmt := "SELECT * FROM " + pr.tableName + " WHERE PK = ? AND SK = ?"
+
+    out, err := pr.dynamoDb.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(selectStmt),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkCreator},
+            &types.AttributeValueMemberS{Value: skCreator},
+        },
+    })
+    if err != nil {
+        return err
+    }
+    if len(out.Items) == 0 {
+        return errors.New("project not found under creator")
+    }
+
+    var existing project.DynamoProject
+    err = attributevalue.UnmarshalMap(out.Items[0], &existing)
+    if err != nil {
+        return err
+    }
+
+    oldManager := existing.Assigned_manager
+
+    // ---------- STEP 2: BUILD UPDATE STATEMENT ----------
+    modifiableFields := []string{
+        "Assigned_manager",
+        "Project_deadline",
+        "Project_description",
+        "Project_name",
+    }
+
+    updateStmt := "UPDATE " + pr.tableName + " SET "
+    params := []types.AttributeValue{}
+
+    for _, field := range modifiableFields {
+        if val, ok := updates[field]; ok {
+            updateStmt += fmt.Sprintf("\"%s\" = ?, ", field)
+
+            params = append(params, &types.AttributeValueMemberS{
+                Value: fmt.Sprintf("%v", val),
+            })
+        }
+    }
+
+    if len(params) == 0 {
+        return errors.New("no valid updates provided")
+    }
+
+    updateStmt = strings.TrimSuffix(updateStmt, ", ")
+    updateStmt += " WHERE PK = ? AND SK = ?"
+
+    // update creator copy
+    creatorParams := append(params,
+        &types.AttributeValueMemberS{Value: pkCreator},
+        &types.AttributeValueMemberS{Value: skCreator},
+    )
+
+    _, err = pr.dynamoDb.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement:  aws.String(updateStmt),
+        Parameters: creatorParams,
+    })
+    if err != nil {
+        return err
+    }
+
+    // ---------- STEP 3: UPDATE MANAGER COPY IF EXISTS ----------
+    pkManagerOld := "USER#" + oldManager
+    skManagerOld := "ASSIGNED#PROJECT#" + projectId
+
+    managerSelect := "SELECT * FROM " + pr.tableName + " WHERE PK = ? AND SK = ?"
+    managerOut, err := pr.dynamoDb.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+        Statement: aws.String(managerSelect),
+        Parameters: []types.AttributeValue{
+            &types.AttributeValueMemberS{Value: pkManagerOld},
+            &types.AttributeValueMemberS{Value: skManagerOld},
+        },
+    })
+    if err != nil {
+        return err
+    }
+
+    if len(managerOut.Items) > 0 {
+        // update manager copy
+        managerParams := append(params,
+            &types.AttributeValueMemberS{Value: pkManagerOld},
+            &types.AttributeValueMemberS{Value: skManagerOld},
+        )
+
+        _, err = pr.dynamoDb.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+            Statement:  aws.String(updateStmt),
+            Parameters: managerParams,
+        })
+        if err != nil {
+            return err
+        }
+    }
+
+    // ---------- STEP 4: HANDLE MANAGER CHANGE ----------
+    newManager, changed := updates["Assigned_manager"].(string)
+
+    if changed && newManager != oldManager {
+
+        // DELETE OLD MANAGER COPY
+        deleteStmt := "DELETE FROM " + pr.tableName + " WHERE PK = ? AND SK = ?"
+        _, err = pr.dynamoDb.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+            Statement: aws.String(deleteStmt),
+            Parameters: []types.AttributeValue{
+                &types.AttributeValueMemberS{Value: pkManagerOld},
+                &types.AttributeValueMemberS{Value: skManagerOld},
+            },
+        })
+        if err != nil {
+            return err
+        }
+
+        // Create new manager copy
+        updated := existing
+        for k, v := range updates {
+            switch k {
+            case "Assigned_manager":
+                updated.Assigned_manager = v.(string)
+            case "Project_deadline":
+                updated.Project_deadline = v.(string)
+            case "Project_description":
+                updated.Project_description = v.(string)
+            case "Project_name":
+                updated.Project_name = v.(string)
+            }
+        }
+
+        newPK := "USER#" + newManager
+        newSK := "ASSIGNED#PROJECT#" + projectId
+
+        updated.PK = newPK
+        updated.SK = newSK
+
+        item, err := attributevalue.MarshalMap(updated)
+        if err != nil {
+            return err
+        }
+
+        _, err = pr.dynamoDb.PutItem(context.TODO(), &dynamodb.PutItemInput{
+            TableName: aws.String(pr.tableName),
+            Item:      item,
+        })
+        if err != nil {
+            return err
+        }
+    }
+    return nil
+}
 func (pr *ProjectRepo) AddProject(newProject project.Project) error {
 	query:=`INSERT INTO projects (project_id, project_name, project_description, deadline, created_by, assigned_manager_id) VALUES (?, ?, ?, ?, ?, ?)`
 

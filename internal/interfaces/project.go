@@ -9,4 +9,5 @@ type ProjectRepository interface {
 	ViewAllProjects()([]project.Project,error)
 	ViewAssignedProject(userId string)([]project.Project,error)
 	DeleteProject(creatorId,managerId,projectID string) error
+	UpdateProject(projectId,creatorId,managerId string,finalUpdates map[string]any)error
 }

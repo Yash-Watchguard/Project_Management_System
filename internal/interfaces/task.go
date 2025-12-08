@@ -13,5 +13,6 @@ type TaskRepo interface {
 	ViewAllTasksInProject(projectId string,creatorId string)([]task.Task,error)
 	ViewAllManagerTask(managerId string)([]task.Task,error)
 	UpdateTask(projecId,taskId string,managerId string,updatedfields map[string]interface{})(error)
-	UpdateTaskEmailId(taskId string,managerId string, updates map[string]interface{}) error
+	
+	GetSingleTask(creatorId string, projectId string, taskId string)([]task.Task,error)
 }

@@ -516,10 +516,56 @@ func (r *TaskRepo) UpdateTask(projectId, taskId, managerId string, updates map[s
     return nil
 }
 
+func (taskRepo *TaskRepo) GetSingleTask(creatorId, projectId, taskId string) ([]task.Task, error) {
+    var tasks []task.Task
 
+    pk := fmt.Sprintf("USER#%s", creatorId)
+    sk := fmt.Sprintf("PROJECT#%sTASK#%s", projectId, taskId)
 
-func(taskRepo *TaskRepo)UpdateTaskEmailId(taskId string,managerId string, updates map[string]interface{}) error{
-   return nil
+    input := &dynamodb.QueryInput{
+        TableName: aws.String(taskRepo.tableName),
+        KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
+        ExpressionAttributeValues: map[string]types.AttributeValue{
+            ":pk": &types.AttributeValueMemberS{Value: pk},
+            ":sk": &types.AttributeValueMemberS{Value: sk},
+        },
+    }
+
+    resp, err := taskRepo.dynamoCliet.Query(context.TODO(), input)
+    if err != nil {
+        return nil, fmt.Errorf("query failed: %w", err)
+    }
+
+    for _, item := range resp.Items {
+        var dynTask task.DynamoTask
+        if err := attributevalue.UnmarshalMap(item, &dynTask); err != nil {
+            return nil, fmt.Errorf("unmarshal failed: %w", err)
+        }
+
+        var t task.Task
+        t.TaskId = dynTask.TaskId
+        t.Title = dynTask.Title
+        t.Description = dynTask.Description
+        t.AcceptanceCriteria = dynTask.AcceptanceCriteria
+        t.AssignedTo = dynTask.AssignedTo
+        t.ProjectId = dynTask.ProjectId
+        t.CreatedBy = dynTask.CreatedBy
+
+        if dynTask.Deadline != "" {
+            t.Deadline, err = time.Parse(time.RFC3339, dynTask.Deadline)
+            if err != nil {
+                return nil, fmt.Errorf("deadline parse error: %w", err)
+            }
+        }
+
+        t.TaskPriority, _ = Priority.PriorityParser(dynTask.TaskPriority)
+        t.TaskStatus, _ = status.GetStatusFromString(dynTask.TaskStatus)
+
+        tasks = append(tasks, t)
+    }
+
+    return tasks, nil
 }
+
 
 

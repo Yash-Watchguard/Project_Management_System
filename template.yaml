@@ -11,7 +11,7 @@ Resources:
   Api:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: v5
+      StageName: v6
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
@@ -227,5 +227,58 @@ Resources:
             Method: get
             Path: /projects/{project_id}/status/creator/{creator_id}
             RestApiId: !Ref Api
+
+  GetSingleTask:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: GetSingleTask
+    Properties:
+      CodeUri: ./cmd/task/getsingletask
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /creator/{creator_id}/projects/{project_id}/tasks/{task_id}
+            RestApiId: !Ref Api
+
+  UpdateProject:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: UpdateProject
+    Properties:
+      CodeUri: ./cmd/project/updateproject
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: TaskNest
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: patch
+            Path: projects/{project_id}/creator/{creator_id}/managers/{manager_id}/updateproject
+            RestApiId: !Ref Api
+
+  DeleteUser:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: DeleteUser
+    Properties:
+      CodeUri: ./cmd/user/deleteuser
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /user/{user_email}/delete
+            RestApiId: !Ref Api
+
+  
 
   
